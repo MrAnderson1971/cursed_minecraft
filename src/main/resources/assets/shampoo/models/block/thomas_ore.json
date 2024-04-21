@@ -1,0 +1,6 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "shampoo:block/thomas_ore"
+  }
+}
