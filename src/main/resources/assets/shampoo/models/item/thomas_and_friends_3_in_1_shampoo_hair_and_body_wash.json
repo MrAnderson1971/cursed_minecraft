@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "shampoo:item/thomas_and_friends_3_in_1_shampoo_hair_and_body_wash"
+  }
+}

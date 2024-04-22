@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "S S",
+    " S "
+  ],
+  "key": {
+    "S": {
+      "item": "shampoo:smelted_thomas"
+    }
+  },
+  "result": {
+    "item": "shampoo:thomas_and_friends_3_in_1_shampoo_hair_and_body_wash"
+  }
+}
