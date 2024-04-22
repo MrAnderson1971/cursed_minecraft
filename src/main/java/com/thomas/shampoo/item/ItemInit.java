@@ -25,9 +25,11 @@ public class ItemInit {
 
     @SubscribeEvent
     public static void buildContents(BuildCreativeModeTabContentsEvent event) {
-        // Put my Thomas Ore in the building blocks creative tab, right after acacia log.
+        // Put my stuff in their proper creative tabs.
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
-            event.getEntries().putAfter(Items.ACACIA_LOG.getDefaultInstance(), THOMAS_ORE_ITEM.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
+            event.accept(THOMAS_ORE_ITEM.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
+        } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
+            event.accept(SMELTED_THOMAS.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
         }
     }
 }

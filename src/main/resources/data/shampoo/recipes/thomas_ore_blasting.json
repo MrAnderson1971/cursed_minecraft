@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:blasting",
+  "ingredient": {
+    "item": "shampoo:thomas_ore"
+  },
+  "result": "shampoo:smelted_thomas",
+  "experience": 0.7,
+  "cookingtime": 100
+}
