@@ -22,6 +22,9 @@ public class ItemInit {
     public static final RegistryObject<Item> THOMAS_ORE_ITEM = ITEMS.register("thomas_ore",
             () -> new BlockItem(BlockInit.THOMAS_ORE.get(), new Item.Properties()));
 
+    public static final RegistryObject<Item> JADE_PYRAMID_ITEM = ITEMS.register("jade_pyramid",
+            () -> new BlockItem(BlockInit.JADE_PYRAMID.get(), new Item.Properties()));
+
     // Smelted Thomas
     public static final RegistryObject<Item> SMELTED_THOMAS = ITEMS.register("smelted_thomas",
             () -> new Item(new Item.Properties()));
@@ -45,6 +48,7 @@ public class ItemInit {
         // Put my stuff in their proper creative tabs.
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
             event.accept(THOMAS_ORE_ITEM.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
+            event.accept(JADE_PYRAMID_ITEM.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
         } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(SMELTED_THOMAS.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
         } else if (event.getTabKey() == CreativeModeTabs.FOOD_AND_DRINKS) {
