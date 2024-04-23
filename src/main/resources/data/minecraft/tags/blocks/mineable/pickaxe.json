@@ -1,6 +1,8 @@
 {
   "replace": false,
   "values": [
-    "shampoo:thomas_ore"
+    "shampoo:thomas_ore",
+    "shampoo:jade_ore",
+    "shampoo:jade_pyramid"
   ]
 }

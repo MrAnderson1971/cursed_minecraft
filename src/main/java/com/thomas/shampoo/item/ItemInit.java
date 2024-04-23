@@ -25,6 +25,12 @@ public class ItemInit {
     public static final RegistryObject<Item> JADE_PYRAMID_ITEM = ITEMS.register("jade_pyramid",
             () -> new BlockItem(BlockInit.JADE_PYRAMID.get(), new Item.Properties()));
 
+    public static final RegistryObject<Item> JADE_ORE_ITEM = ITEMS.register("jade_ore",
+            () -> new BlockItem(BlockInit.JADE_ORE.get(), new Item.Properties()));
+
+    public static final RegistryObject<Item> JADE = ITEMS.register("jade",
+            () -> new Item(new Item.Properties()));
+
     // Smelted Thomas
     public static final RegistryObject<Item> SMELTED_THOMAS = ITEMS.register("smelted_thomas",
             () -> new Item(new Item.Properties()));
@@ -54,8 +60,10 @@ public class ItemInit {
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
             event.accept(THOMAS_ORE_ITEM.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
             event.accept(JADE_PYRAMID_ITEM.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
+            event.accept(JADE_ORE_ITEM.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
         } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(SMELTED_THOMAS.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
+            event.accept(JADE.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
             //event.accept(WATER_ITEM.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
         } else if (event.getTabKey() == CreativeModeTabs.FOOD_AND_DRINKS) {
             event.accept(THOMAS_AND_FRIENDS_3_IN_1_SHAMPOO_HAIR_AND_BODY_WASH.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);

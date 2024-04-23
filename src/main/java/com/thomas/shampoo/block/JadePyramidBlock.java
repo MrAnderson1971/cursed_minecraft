@@ -1,7 +1,6 @@
 package com.thomas.shampoo.block;
 
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -10,7 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.phys.shapes.CollisionContext;
 
-public class JadePyramidBlock extends Block implements SimpleWaterloggedBlock {
+public class JadePyramidBlock extends Block {
 
     // Define the voxel shapes for each tier of the pyramid.
     private static final VoxelShape BASE = Block.box(0, 0, 0, 16, 4, 16);
