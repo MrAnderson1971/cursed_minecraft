@@ -35,6 +35,9 @@ public class ItemInit {
     public static final RegistryObject<Item> SMELTED_THOMAS = ITEMS.register("smelted_thomas",
             () -> new Item(new Item.Properties()));
 
+    public static final RegistryObject<Item> EXPLODING_BELL = ITEMS.register("exploding_bell",
+            () -> new ExplodingBell(new Item.Properties().stacksTo(1)));
+
     // Thomas & Friends 3 in 1 Hair and Body Wash
     public static final RegistryObject<Item> THOMAS_AND_FRIENDS_3_IN_1_SHAMPOO_HAIR_AND_BODY_WASH = ITEMS.register("thomas_and_friends_3_in_1_shampoo_hair_and_body_wash",
             () -> new DrinkableItem(new Item.Properties()
@@ -64,6 +67,7 @@ public class ItemInit {
         } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(SMELTED_THOMAS.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
             event.accept(JADE.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
+            event.accept(EXPLODING_BELL.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
             //event.accept(WATER_ITEM.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
         } else if (event.getTabKey() == CreativeModeTabs.FOOD_AND_DRINKS) {
             event.accept(THOMAS_AND_FRIENDS_3_IN_1_SHAMPOO_HAIR_AND_BODY_WASH.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
