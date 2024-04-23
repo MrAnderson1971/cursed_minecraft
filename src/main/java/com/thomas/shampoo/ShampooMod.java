@@ -17,6 +17,4 @@ public class ShampooMod
         ItemInit.ITEMS.register(modEventBus);
         BlockInit.BLOCKS.register(modEventBus);
     }
-
-
 }

@@ -36,12 +36,17 @@ public class ItemInit {
                     .rarity(Rarity.EPIC)
                     .food(new FoodProperties.Builder()
                             .alwaysEat() // Can be eaten even when not hungry
-                            .effect(() -> new MobEffectInstance(MobEffects.LEVITATION, 200, 1), 0.7f) // Levitation effect
+                            .effect(() -> new MobEffectInstance(MobEffects.LEVITATION, 200, 1), 1.0f) // Levitation effect
                             .effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 6000, 1), 1.0f) // Speed effect
                             .effect(() -> new MobEffectInstance(MobEffects.NIGHT_VISION, 6000, 0), 1.0f) // Night Vision effect
                             .effect(() -> new MobEffectInstance(MobEffects.FIRE_RESISTANCE, 6000, 0), 1.0f) // Fire Resistance effect
+                            .effect(() -> new MobEffectInstance(MobEffects.GLOWING, 200, 1), 1.0f)
                             .build())
             ));
+
+    // Water
+    public static final RegistryObject<Item> WATER_ITEM = ITEMS.register("water_item",
+            () -> new Item(new Item.Properties()));
 
     @SubscribeEvent
     public static void buildContents(BuildCreativeModeTabContentsEvent event) {
@@ -51,6 +56,7 @@ public class ItemInit {
             event.accept(JADE_PYRAMID_ITEM.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
         } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             event.accept(SMELTED_THOMAS.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
+            //event.accept(WATER_ITEM.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
         } else if (event.getTabKey() == CreativeModeTabs.FOOD_AND_DRINKS) {
             event.accept(THOMAS_AND_FRIENDS_3_IN_1_SHAMPOO_HAIR_AND_BODY_WASH.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
         }
