@@ -1,7 +1,17 @@
 package com.thomas.shampoo.event;
 
 import com.thomas.shampoo.ShampooMod;
+import com.thomas.shampoo.item.ItemInit;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.animal.CatVariant;
+import net.minecraft.world.entity.monster.Shulker;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ChestMenu;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -13,15 +23,17 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.InteractionResult;
 
 @Mod.EventBusSubscriber(modid = ShampooMod.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
-public class CatTransformationHandler {
+public class EntityInteractionHandler {
 
     @SubscribeEvent
-    public static void onEntityNamed(PlayerInteractEvent.EntityInteractSpecific event) {
+    public static void onEntityInteract(PlayerInteractEvent.EntityInteractSpecific event) {
         // Check if the entity is a cat and the item used is a name tag
-        if (event.getTarget() instanceof Cat cat && event.getItemStack().getItem() == Items.NAME_TAG) {
+        Entity target = event.getTarget();
+        Level level = event.getLevel();
+        Player player = event.getEntity();
+        if (target instanceof Cat cat && event.getItemStack().getItem() == Items.NAME_TAG) {
             // Check if the name tag has the name "Morgana"
-            if ("Morgana".equals(event.getItemStack().getHoverName().getString())) {
-                Level level = event.getLevel();
+            if ("Morgana".equals(event.getItemStack().getHoverName().getString()) && cat.getVariant() == BuiltInRegistries.CAT_VARIANT.get(CatVariant.BLACK)) {
                 if (!level.isClientSide()) {
                     // Create a minecart at the cat's location
                     Minecart minecart = EntityType.MINECART.create(level);
