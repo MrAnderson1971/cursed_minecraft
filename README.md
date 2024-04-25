@@ -1,4 +1,4 @@
-# [Mod here](https://github.com/MrAnderson1971/WeaponizedAbsurdityMod/raw/master/ThomasAndFriends3In1ShampooHairAndBodyWash.jar)
+# [Mod here](https://github.com/MrAnderson1971/cursed_minecraft/raw/master/build/reobfJar/output.jar)
 ## Features
 * Thomas and Friends 3 in 1 Shampoo, Hair, and Body Wash (gives you superpowers!)
 * Jade Pyramid
