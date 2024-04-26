@@ -38,6 +38,12 @@ public class ItemInit {
     public static final RegistryObject<Item> EXPLODING_BELL = ITEMS.register("exploding_bell",
             () -> new ExplodingBell(new Item.Properties().stacksTo(1)));
 
+    public static final RegistryObject<Item> WUCKET = ITEMS.register("wucket",
+            () -> new Wucket(new Item.Properties().stacksTo(16)));
+
+    public static final RegistryObject<Item> BATER_WUCKET = ITEMS.register("bater_wucket",
+            () -> new BaterWucket(new Item.Properties().stacksTo(1)));
+
     // Thomas & Friends 3 in 1 Hair and Body Wash
     public static final RegistryObject<Item> THOMAS_AND_FRIENDS_3_IN_1_SHAMPOO_HAIR_AND_BODY_WASH = ITEMS.register("thomas_and_friends_3_in_1_shampoo_hair_and_body_wash",
             () -> new DrinkableItem(new Item.Properties()
@@ -61,16 +67,22 @@ public class ItemInit {
     public static void buildContents(BuildCreativeModeTabContentsEvent event) {
         // Put my stuff in their proper creative tabs.
         if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
-            event.accept(THOMAS_ORE_ITEM.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
-            event.accept(JADE_PYRAMID_ITEM.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
-            event.accept(JADE_ORE_ITEM.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
+            addItemToTab(event, THOMAS_ORE_ITEM);
+            addItemToTab(event, JADE_PYRAMID_ITEM);
+            addItemToTab(event, JADE_ORE_ITEM);
         } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
-            event.accept(SMELTED_THOMAS.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
-            event.accept(JADE.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
-            event.accept(EXPLODING_BELL.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
-            //event.accept(WATER_ITEM.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
+            addItemToTab(event, SMELTED_THOMAS);
+            addItemToTab(event, JADE);
+            addItemToTab(event, EXPLODING_BELL);
+            addItemToTab(event, WATER_ITEM);
+            addItemToTab(event, BATER_WUCKET);
+            addItemToTab(event, WUCKET);
         } else if (event.getTabKey() == CreativeModeTabs.FOOD_AND_DRINKS) {
-            event.accept(THOMAS_AND_FRIENDS_3_IN_1_SHAMPOO_HAIR_AND_BODY_WASH.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
+            addItemToTab(event, THOMAS_AND_FRIENDS_3_IN_1_SHAMPOO_HAIR_AND_BODY_WASH);
         }
+    }
+
+    private static void addItemToTab(BuildCreativeModeTabContentsEvent event, RegistryObject<Item> itemSupplier) {
+        event.accept(itemSupplier.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
     }
 }
