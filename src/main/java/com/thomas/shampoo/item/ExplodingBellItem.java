@@ -22,13 +22,16 @@ public class ExplodingBellItem extends Item {
     @Override
     public void inventoryTick(ItemStack stack, Level world, Entity entity, int itemSlot, boolean isSelected) {
         if (!world.isClientSide && entity instanceof Player player) {
-            BlockPos pos = player.blockPosition();
+            // Check if the player is in Creative mode
+            if (!player.isCreative()) {
+                BlockPos pos = player.blockPosition();
 
-            // Create an explosion at the player's location
-            world.explode(player, pos.getX(), pos.getY(), pos.getZ(), 4.0F, true, Level.ExplosionInteraction.TNT);
+                // Create an explosion at the player's location
+                world.explode(player, pos.getX(), pos.getY(), pos.getZ(), 4.0F, true, Level.ExplosionInteraction.TNT);
 
-            // Remove the item from inventory after explosion
-            stack.shrink(1);
+                // Remove the item from inventory after explosion
+                stack.shrink(1);
+            }
         }
     }
 
