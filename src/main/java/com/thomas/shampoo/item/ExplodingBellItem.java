@@ -13,8 +13,8 @@ import net.minecraft.core.BlockPos;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class ExplodingBell extends Item {
-    public ExplodingBell(Properties properties) {
+public class ExplodingBellItem extends Item {
+    public ExplodingBellItem(Properties properties) {
         super(properties);
     }
 

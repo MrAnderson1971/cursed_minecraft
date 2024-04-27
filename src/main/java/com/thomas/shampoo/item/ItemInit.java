@@ -36,13 +36,13 @@ public class ItemInit {
             () -> new Item(new Item.Properties()));
 
     public static final RegistryObject<Item> EXPLODING_BELL = ITEMS.register("exploding_bell",
-            () -> new ExplodingBell(new Item.Properties().stacksTo(1)));
+            () -> new ExplodingBellItem(new Item.Properties().stacksTo(1)));
 
     public static final RegistryObject<Item> WUCKET = ITEMS.register("wucket",
-            () -> new Wucket(new Item.Properties().stacksTo(16)));
+            () -> new WucketItem(new Item.Properties().stacksTo(16)));
 
     public static final RegistryObject<Item> BATER_WUCKET = ITEMS.register("bater_wucket",
-            () -> new BaterWucket(new Item.Properties().stacksTo(1)));
+            () -> new BaterWucketItem(new Item.Properties().stacksTo(1)));
 
     // Thomas & Friends 3 in 1 Hair and Body Wash
     public static final RegistryObject<Item> THOMAS_AND_FRIENDS_3_IN_1_SHAMPOO_HAIR_AND_BODY_WASH = ITEMS.register("thomas_and_friends_3_in_1_shampoo_hair_and_body_wash",

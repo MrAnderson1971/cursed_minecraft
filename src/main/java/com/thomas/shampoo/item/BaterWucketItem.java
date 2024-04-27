@@ -13,8 +13,8 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import static com.thomas.shampoo.item.ItemInit.WUCKET;
 
-public class BaterWucket extends Item {
-    public BaterWucket(Properties properties) {
+public class BaterWucketItem extends Item {
+    public BaterWucketItem(Properties properties) {
         super(properties);
     }
 

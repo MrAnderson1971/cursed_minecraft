@@ -14,8 +14,8 @@ import net.minecraft.world.level.block.Blocks;
 
 import static com.thomas.shampoo.item.ItemInit.BATER_WUCKET;
 
-public class Wucket extends Item {
-    public Wucket(Properties properties) {
+public class WucketItem extends Item {
+    public WucketItem(Properties properties) {
         super(properties);
     }
 
