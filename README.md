@@ -2,7 +2,7 @@
 
 For Minecraft version 1.20.2
 ## Features
-* Thomas and Friends 3 in 1 Shampoo, Hair, and Body Wash (gives you superpowers!)
+* Thomas and Friends 3 in 1 Shampoo, Hair, and Body Wash (gives you [superpowers](https://www.youtube.com/watch?v=P7I6rmtHB60)!)
 * Jade Pyramid
 * Cats turning into cars
 * 🛎️🛎️🛎️🛎️🛎️🛎️🛎️🛎️💥
