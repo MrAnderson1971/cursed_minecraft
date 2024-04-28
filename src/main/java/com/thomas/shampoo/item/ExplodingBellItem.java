@@ -27,7 +27,7 @@ public class ExplodingBellItem extends Item {
                 BlockPos pos = player.blockPosition();
 
                 // Create an explosion at the player's location
-                world.explode(player, pos.getX(), pos.getY(), pos.getZ(), 4.0F, true, Level.ExplosionInteraction.TNT);
+                world.explode(null, pos.getX(), pos.getY(), pos.getZ(), 4.0F, true, Level.ExplosionInteraction.TNT);
 
                 // Remove the item from inventory after explosion
                 stack.shrink(1);
