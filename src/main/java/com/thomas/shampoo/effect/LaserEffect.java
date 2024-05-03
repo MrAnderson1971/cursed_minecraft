@@ -1,5 +1,6 @@
 package com.thomas.shampoo.effect;
 
+import com.thomas.shampoo.entity.Unlaserable;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.Entity;
@@ -70,6 +71,9 @@ public class LaserEffect extends MobEffect {
     }
 
     private void triggerEffects(Level level, Entity shooter, Entity target, int power) {
+        if (target instanceof Unlaserable) {
+            return;
+        }
         if (target instanceof LivingEntity livingEntity) {
             livingEntity.hurt(level.damageSources().sonicBoom(shooter), power * 2.0F);
             livingEntity.setSecondsOnFire(5 * power);
