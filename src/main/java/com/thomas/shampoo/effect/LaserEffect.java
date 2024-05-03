@@ -97,7 +97,7 @@ public class LaserEffect extends MobEffect {
             Vec3 particlePos = start;
             double distanceToEnd = start.distanceTo(end);
             while (particlePos.distanceTo(start) < distanceToEnd) {
-                sl.sendParticles(ParticleTypes.ENCHANTED_HIT, particlePos.x, particlePos.y, particlePos.z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+                sl.sendParticles(ParticleTypes.END_ROD, particlePos.x, particlePos.y, particlePos.z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
                 particlePos = particlePos.add(direction); // Move along the vector
             }
         }
