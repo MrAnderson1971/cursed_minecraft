@@ -13,8 +13,8 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
 @OnlyIn(Dist.CLIENT)
-public class BidenModel<T extends LivingEntity> extends HumanoidModel<T> {
-    public BidenModel(ModelPart root) {
+public class PlayerlikeModel<T extends LivingEntity> extends HumanoidModel<T> {
+    public PlayerlikeModel(ModelPart root) {
         super(root, RenderType::entityTranslucent);
         // No changes needed for the constructor if it just uses the root from the super constructor
     }

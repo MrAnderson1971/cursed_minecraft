@@ -5,7 +5,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import com.thomas.shampoo.entity.CustomFireballRenderer;
+import com.thomas.shampoo.renderer.CustomFireballRenderer;
 
 @Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ClientRenderEvents {

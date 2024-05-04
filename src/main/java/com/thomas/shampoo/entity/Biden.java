@@ -19,19 +19,24 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.DifficultyInstance;
 import org.jetbrains.annotations.NotNull;
 
-public class Biden extends AbstractGolem implements Unlaserable, RangedAttackMob {
+public class Biden extends Monster implements Unlaserable, RangedAttackMob {
     private static final double BASE_SPEED = 0.6;
 
-    public Biden(EntityType<? extends AbstractGolem> type, Level worldIn) {
+    public Biden(EntityType<? extends Monster> type, Level worldIn) {
         super(type, worldIn);
-        this.goalSelector.addGoal(2, new LaserAttackGoal(this, Mob.class, (e) -> e instanceof Enemy || e instanceof Player));
+        this.goalSelector.addGoal(2, new LaserAttackGoal(this, Mob.class, Biden::selection));
         this.goalSelector.addGoal(2, new RangedAttackGoal(this, BASE_SPEED, 1, 20, 16));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Mob.class, 10,
-                true, false, (e) -> e instanceof Enemy || e instanceof Player));
+                true, false, e -> !(e instanceof Unlaserable) && e instanceof Enemy));
+        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Player.class, 10, true, false, e -> true));
         this.goalSelector.addGoal(1, new AvoidEntityGoal<>(this, Mob.class, 8.0F, BASE_SPEED,
-                2 * BASE_SPEED, (e) -> e instanceof Enemy || e instanceof Player && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(e)));
+                2 * BASE_SPEED, (e) -> Biden.selection(e) && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(e)));
         this.goalSelector.addGoal(7, new WaterAvoidingRandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
+    }
+
+    private static boolean selection(Entity e) {
+        return !(e instanceof Unlaserable) && (e instanceof Enemy || e instanceof Player);
     }
 
     public static AttributeSupplier.Builder createAttributes() {

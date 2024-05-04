@@ -1,7 +1,7 @@
 package com.thomas.shampoo.renderer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.thomas.shampoo.entity.Biden;
+import com.thomas.shampoo.entity.Obama;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -11,20 +11,20 @@ import net.minecraft.resources.ResourceLocation;
 
 import static com.thomas.shampoo.ShampooMod.MODID;
 
-public class BidenRenderer extends LivingEntityRenderer<Biden, PlayerlikeModel<Biden>> {
-    private static final ResourceLocation BIDEN_TEXTURE = new ResourceLocation(MODID, "textures/entity/biden.png");
+public class ObamaRenderer extends LivingEntityRenderer<Obama, PlayerlikeModel<Obama>> {
+    private static final ResourceLocation OBAMA_TEXTURE = new ResourceLocation(MODID, "textures/entity/obama.png");
 
-    public BidenRenderer(EntityRendererProvider.Context context) {
+    public ObamaRenderer(EntityRendererProvider.Context context) {
         super(context, new PlayerlikeModel<>(context.bakeLayer(ModelLayers.PLAYER)), 0.5f);
     }
 
     @Override
-    public ResourceLocation getTextureLocation(Biden entity) {
-        return BIDEN_TEXTURE;  // Assigning Biden specific texture.
+    public ResourceLocation getTextureLocation(Obama entity) {
+        return OBAMA_TEXTURE;
     }
 
     @Override
-    protected void renderNameTag(Biden entity, Component displayName, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+    protected void renderNameTag(Obama entity, Component displayName, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
         // Do nothing, this will prevent the name tag from rendering
     }
 }
