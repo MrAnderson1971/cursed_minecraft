@@ -13,5 +13,8 @@ public class EffectInit {
             = DeferredRegister.create(ForgeRegistries.MOB_EFFECTS, MODID);
 
     public static final RegistryObject<MobEffect> FLYING = MOB_EFFECTS.register("flying",
-            () -> new FlyingEffect(MobEffectCategory.BENEFICIAL, 3124687));
+            () -> new BasicCustomEffect(MobEffectCategory.BENEFICIAL, 0x2FADCF));
+
+    public static final RegistryObject<MobEffect> LASER = MOB_EFFECTS.register("laser",
+            () -> new LaserEffect(MobEffectCategory.BENEFICIAL, 0xE80505));
 }

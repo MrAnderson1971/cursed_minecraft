@@ -3,10 +3,12 @@ package com.thomas.shampoo.item;
 import com.thomas.shampoo.ShampooMod;
 import com.thomas.shampoo.block.BlockInit;
 import com.thomas.shampoo.effect.EffectInit;
+import com.thomas.shampoo.entity.EntityInit;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.*;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -60,6 +62,9 @@ public class ItemInit {
     public static final RegistryObject<Item> WATER_ITEM = ITEMS.register("water_item",
             () -> new Item(new Item.Properties()));
 
+    public static final RegistryObject<ForgeSpawnEggItem> BIDEN_SPAWN_EGG = ITEMS.register("biden_spawn_egg",
+            () -> new ForgeSpawnEggItem(EntityInit.BIDEN, 0x001489, 0xFFFFFF, new Item.Properties()));
+
     @SubscribeEvent
     public static void buildContents(BuildCreativeModeTabContentsEvent event) {
         // Put my stuff in their proper creative tabs.
@@ -76,10 +81,12 @@ public class ItemInit {
             addItemToTab(event, WUCKET);
         } else if (event.getTabKey() == CreativeModeTabs.FOOD_AND_DRINKS) {
             addItemToTab(event, THOMAS_AND_FRIENDS_3_IN_1_SHAMPOO_HAIR_AND_BODY_WASH);
+        } else if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) {
+            addItemToTab(event, BIDEN_SPAWN_EGG);
         }
     }
 
-    private static void addItemToTab(BuildCreativeModeTabContentsEvent event, RegistryObject<Item> itemSupplier) {
+    private static void addItemToTab(BuildCreativeModeTabContentsEvent event, RegistryObject<? extends Item> itemSupplier) {
         event.accept(itemSupplier.get().getDefaultInstance(), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS);
     }
 }

@@ -16,5 +16,9 @@ public class EntityInit {
             () -> EntityType.Builder.<CustomFireball>of(CustomFireball::new, MobCategory.MISC)
                     .sized(1.0f, 1.0f)
                     .build(new ResourceLocation("minecraft", "textures/entity/fireball.png").toString())
+    public static final RegistryObject<EntityType<Biden>> BIDEN = ENTITIES.register("biden",
+            () -> EntityType.Builder.of(Biden::new, MobCategory.MONSTER)
+                    .sized(0.6F,1.8F) // These are typical dimensions for a player.
+                    .build(new ResourceLocation(MODID, "biden").toString())
     );
 }
