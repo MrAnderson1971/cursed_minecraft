@@ -1,7 +1,7 @@
 package com.thomas.shampoo.event;
 
 import com.thomas.shampoo.entity.EntityInit;
-import com.thomas.shampoo.entity.PinkSheep;
+import com.thomas.shampoo.entity.Biden;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
@@ -17,12 +17,12 @@ public class CommonModEvents {
 
     @SubscribeEvent
     public static void entityAttributes(EntityAttributeCreationEvent event) {
-        event.put(EntityInit.PINK_SHEEP.get(), PinkSheep.createAttributes().build());
+        event.put(EntityInit.BIDEN.get(), Biden.createAttributes().build());
     }
 
-    @SubscribeEvent
-    public static void registerSpawnPlacements(SpawnPlacementRegisterEvent event) {
-        event.register(EntityInit.PINK_SHEEP.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.WORLD_SURFACE,
-                Monster::checkMonsterSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
-    }
+//    @SubscribeEvent
+//    public static void registerSpawnPlacements(SpawnPlacementRegisterEvent event) {
+//        event.register(EntityInit.BIDEN.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.WORLD_SURFACE,
+//                Monster::checkMonsterSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
+//    }
 }

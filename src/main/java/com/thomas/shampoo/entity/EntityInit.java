@@ -12,9 +12,9 @@ import static com.thomas.shampoo.ShampooMod.MODID;
 public class EntityInit {
     public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, MODID);
 
-    public static final RegistryObject<EntityType<PinkSheep>> PINK_SHEEP = ENTITIES.register("pink_sheep",
-            () -> EntityType.Builder.<PinkSheep>of(PinkSheep::new, MobCategory.MONSTER)
-                    .sized(0.9F, 1.3F) // These are typical dimensions for a sheep.
-                    .build(new ResourceLocation("minecraft", "textures/entity/sheep/sheep.png").toString())
+    public static final RegistryObject<EntityType<Biden>> BIDEN = ENTITIES.register("biden",
+            () -> EntityType.Builder.of(Biden::new, MobCategory.MONSTER)
+                    .sized(0.6F,1.8F) // These are typical dimensions for a player.
+                    .build(new ResourceLocation(MODID, "biden").toString())
     );
 }

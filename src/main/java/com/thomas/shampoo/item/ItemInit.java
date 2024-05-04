@@ -62,8 +62,8 @@ public class ItemInit {
     public static final RegistryObject<Item> WATER_ITEM = ITEMS.register("water_item",
             () -> new Item(new Item.Properties()));
 
-    public static final RegistryObject<ForgeSpawnEggItem> PINK_SHEEP_SPAWN_EGG = ITEMS.register("pink_sheep_spawn_egg",
-            () -> new ForgeSpawnEggItem(EntityInit.PINK_SHEEP, 0xFFB5C5, 0xFF99CC, new Item.Properties()));
+    public static final RegistryObject<ForgeSpawnEggItem> BIDEN_SPAWN_EGG = ITEMS.register("biden_spawn_egg",
+            () -> new ForgeSpawnEggItem(EntityInit.BIDEN, 0x001489, 0xFFFFFF, new Item.Properties()));
 
     @SubscribeEvent
     public static void buildContents(BuildCreativeModeTabContentsEvent event) {
@@ -82,7 +82,7 @@ public class ItemInit {
         } else if (event.getTabKey() == CreativeModeTabs.FOOD_AND_DRINKS) {
             addItemToTab(event, THOMAS_AND_FRIENDS_3_IN_1_SHAMPOO_HAIR_AND_BODY_WASH);
         } else if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) {
-            addItemToTab(event, PINK_SHEEP_SPAWN_EGG);
+            addItemToTab(event, BIDEN_SPAWN_EGG);
         }
     }
 
