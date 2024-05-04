@@ -12,6 +12,10 @@ import static com.thomas.shampoo.ShampooMod.MODID;
 public class EntityInit {
     public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, MODID);
 
+    public static final RegistryObject<EntityType<CustomFireball>> CUSTOM_FIREBALL = ENTITIES.register("custom_fireball",
+            () -> EntityType.Builder.<CustomFireball>of(CustomFireball::new, MobCategory.MISC)
+                    .sized(1.0f, 1.0f)
+                    .build(new ResourceLocation("minecraft", "textures/entity/fireball.png").toString())
     public static final RegistryObject<EntityType<Biden>> BIDEN = ENTITIES.register("biden",
             () -> EntityType.Builder.of(Biden::new, MobCategory.MONSTER)
                     .sized(0.6F,1.8F) // These are typical dimensions for a player.
