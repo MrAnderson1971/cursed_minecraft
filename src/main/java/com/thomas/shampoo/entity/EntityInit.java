@@ -29,4 +29,10 @@ public class EntityInit {
                     .sized(0.6F,1.8F)
                     .build(new ResourceLocation(MODID, "obama").toString())
     );
+
+    public static final RegistryObject<EntityType<StevenArmstrong>> STEVEN_ARMSTRONG = ENTITIES.register("steven_armstrong",
+            () -> EntityType.Builder.of(StevenArmstrong::new, MobCategory.MONSTER)
+                    .sized(0.9F,2.9F)
+                    .build(new ResourceLocation(MODID, "steven_armstrong").toString())
+    );
 }

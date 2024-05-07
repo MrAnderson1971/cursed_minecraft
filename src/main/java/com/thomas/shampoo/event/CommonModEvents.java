@@ -3,6 +3,7 @@ package com.thomas.shampoo.event;
 import com.thomas.shampoo.entity.EntityInit;
 import com.thomas.shampoo.entity.Biden;
 import com.thomas.shampoo.entity.Obama;
+import com.thomas.shampoo.entity.StevenArmstrong;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
@@ -20,6 +21,7 @@ public class CommonModEvents {
     public static void entityAttributes(EntityAttributeCreationEvent event) {
         event.put(EntityInit.BIDEN.get(), Biden.createAttributes().build());
         event.put(EntityInit.OBAMA.get(), Obama.createAttributes().build());
+        event.put(EntityInit.STEVEN_ARMSTRONG.get(), StevenArmstrong.createAttributes().build());
     }
 
     @SubscribeEvent
@@ -27,6 +29,8 @@ public class CommonModEvents {
         event.register(EntityInit.BIDEN.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.WORLD_SURFACE,
                 Monster::checkMonsterSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
         event.register(EntityInit.OBAMA.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.WORLD_SURFACE,
+                Monster::checkMonsterSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
+        event.register(EntityInit.STEVEN_ARMSTRONG.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.WORLD_SURFACE,
                 Monster::checkMonsterSpawnRules, SpawnPlacementRegisterEvent.Operation.OR);
     }
 }

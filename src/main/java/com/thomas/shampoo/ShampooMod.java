@@ -3,6 +3,7 @@ package com.thomas.shampoo;
 import com.thomas.shampoo.effect.EffectInit;
 import com.thomas.shampoo.entity.EntityInit;
 import com.thomas.shampoo.item.ItemInit;
+import com.thomas.shampoo.world.ModSounds;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -20,5 +21,6 @@ public class ShampooMod
         BlockInit.BLOCKS.register(modEventBus);
         EffectInit.MOB_EFFECTS.register(modEventBus);
         EntityInit.ENTITIES.register(modEventBus);
+        ModSounds.SOUNDS.register(modEventBus);
     }
 }

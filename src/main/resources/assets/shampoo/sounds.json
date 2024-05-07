@@ -1,0 +1,10 @@
+{
+  "armstrong_music": {
+    "sounds": [
+      {
+        "name": "shampoo:armstrong_music",
+        "stream": true
+      }
+    ]
+  }
+}

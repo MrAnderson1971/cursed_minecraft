@@ -68,6 +68,9 @@ public class ItemInit {
     public static final RegistryObject<ForgeSpawnEggItem> OBAMA_SPAWN_EGG = ITEMS.register("obama_spawn_egg",
             () -> new ForgeSpawnEggItem(EntityInit.OBAMA, 0x0015BC, 0xFF0000, new Item.Properties()));
 
+    public static final RegistryObject<ForgeSpawnEggItem> ARMSTRONG_SPAWN_EGG = ITEMS.register("steven_armstrong_spawn_egg",
+            () -> new ForgeSpawnEggItem(EntityInit.STEVEN_ARMSTRONG, 0xFFFFFF, 0xFAB5A9, new Item.Properties()));
+
     @SubscribeEvent
     public static void buildContents(BuildCreativeModeTabContentsEvent event) {
         // Put my stuff in their proper creative tabs.
@@ -87,6 +90,7 @@ public class ItemInit {
         } else if (event.getTabKey() == CreativeModeTabs.SPAWN_EGGS) {
             addItemToTab(event, BIDEN_SPAWN_EGG);
             addItemToTab(event, OBAMA_SPAWN_EGG);
+            addItemToTab(event, ARMSTRONG_SPAWN_EGG);
         }
     }
 
