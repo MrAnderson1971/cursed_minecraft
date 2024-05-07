@@ -1,6 +1,8 @@
 package com.thomas.shampoo.effect;
 
 import com.thomas.shampoo.entity.Unlaserable;
+import com.thomas.shampoo.world.ModDamageSources;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.Entity;
@@ -75,7 +77,8 @@ public class LaserEffect extends MobEffect {
             return;
         }
         if (target instanceof LivingEntity livingEntity) {
-            livingEntity.hurt(level.damageSources().sonicBoom(shooter), power * 2.0F);
+            DamageSource laser = new ModDamageSources(level.registryAccess()).laser(shooter);
+            livingEntity.hurt(laser, power * 2.0F);
             livingEntity.setSecondsOnFire(5 * power);
 
             BlockPos posUnderEntity = new BlockPos(target.getBlockX(), target.getBlockY() - 1, target.getBlockZ());
