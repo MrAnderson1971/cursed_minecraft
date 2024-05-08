@@ -1,50 +1,40 @@
 package com.thomas.shampoo.entity;
 
+import com.thomas.shampoo.network.PacketHandler;
+import com.thomas.shampoo.network.SStopArmstrongMusicPacket;
 import com.thomas.shampoo.world.ArmstrongNodeEvaluator;
+import com.thomas.shampoo.world.ModSounds;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerBossEvent;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.Music;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.monster.warden.Warden;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.pathfinder.Node;
-import net.minecraft.world.level.pathfinder.PathFinder;
-import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
-import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ai.behavior.warden.SonicBoom;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
-import net.minecraft.server.level.ServerPlayer;
-
-import javax.annotation.Nullable;
-
-import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.pathfinder.PathFinder;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import static com.thomas.shampoo.world.ModSounds.ARMSTRONG_MUSIC;
-
-public class StevenArmstrong extends Warden {
+public class StevenArmstrong extends Monster {
 
     private static final float SIGHT_RANGE = 50.0F; // Increased sight range
     private double jumpCooldown;
     private final ServerBossEvent bossEvent = (ServerBossEvent)(new ServerBossEvent(this.getDisplayName(), BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.PROGRESS)).setDarkenScreen(true);
-    private boolean isPlayingSound = false;
+    public static final Music ARMSTRONG_MUSIC = new Music(ModSounds.ARMSTRONG_MUSIC.getHolder().orElseThrow(), 100, 200, true);;
 
     public StevenArmstrong(EntityType<? extends Monster> type, Level level) {
         super(type, level);
@@ -76,18 +66,26 @@ public class StevenArmstrong extends Warden {
             this.jumpCooldown = 100;  // Reset cooldown to prevent frequent jumping
         }
 
-        // Play sound only if not already playing
-        if (!isPlayingSound) {
-            this.level().playSound(null, this.blockPosition(), ARMSTRONG_MUSIC.get(), SoundSource.NEUTRAL, 1.0F, 1.0F);
-            isPlayingSound = true;
+        // Play boss music if not playing already
+        if (!Minecraft.getInstance().getMusicManager().isPlayingMusic(ARMSTRONG_MUSIC) && isAlive()) {
+            Minecraft.getInstance().getMusicManager().startPlaying(ARMSTRONG_MUSIC);
         }
     }
 
     @Override
     public void die(DamageSource cause) {
         super.die(cause);
-        // Stop the sound when the mob dies
-        isPlayingSound = false;
+
+        if (!level().isClientSide) {  // Ensure this runs on the server side
+            // Check if there are any other entities of this type still alive
+            boolean anyAlive = level().getEntitiesOfClass(StevenArmstrong.class, this.getBoundingBox().inflate(10000)).stream()
+                    .anyMatch(e -> e.isAlive() && e != this);
+
+            if (!anyAlive) {
+                // Inform the client to stop the music, typically through a custom packet or event
+                PacketHandler.sendToServer(new SStopArmstrongMusicPacket());
+            }
+        }
     }
 
     @Override
@@ -133,6 +131,31 @@ public class StevenArmstrong extends Warden {
             movement = movement.add(0, 0.1, 0);  // Increase upward motion slightly
         }
         super.move(type, movement);
+    }
+
+    @Nullable
+    @Override
+    protected SoundEvent getAmbientSound() {
+        return ModSounds.ARMSTRONG_ROAR.get();
+    }
+
+    protected SoundEvent getHurtSound(DamageSource p_219440_) {
+        return ModSounds.ARMSTRONG_HURT.get();
+    }
+
+    protected SoundEvent getDeathSound() {
+        return ModSounds.ARMSTRONG_DEATH.get();
+    }
+
+    protected void playStepSound(BlockPos p_219431_, BlockState p_219432_) {
+        this.playSound(ModSounds.ARMSTRONG_STEP.get(), 10.0F, 1.0F);
+    }
+
+    public boolean doHurtTarget(Entity p_219472_) {
+        this.level().broadcastEntityEvent(this, (byte)4);
+        this.playSound(ModSounds.ARMSTRONG_ATTACK_IMPACT.get(), 10.0F, this.getVoicePitch());
+        SonicBoom.setCooldown(this, 40);
+        return super.doHurtTarget(p_219472_);
     }
 
     // Additional methods for sonic boom, etc., would be implemented here.
