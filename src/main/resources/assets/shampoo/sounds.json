@@ -2,8 +2,327 @@
   "armstrong_music": {
     "sounds": [
       {
-        "name": "shampoo:armstrong_music",
+        "name": "shampoo:armstrong/armstrong_music",
         "stream": true
+      }
+    ]
+  },
+  "armstrong_agitated": {
+    "sounds": [
+      {
+        "name": "shampoo:armstrong/agitated_1"
+      },
+      {
+        "name": "shampoo:armstrong/agitated_2"
+      },
+      {
+        "name": "shampoo:armstrong/agitated_3"
+      },
+      {
+        "name": "shampoo:armstrong/agitated_4"
+      },
+      {
+        "name": "shampoo:armstrong/agitated_5"
+      },
+      {
+        "name": "shampoo:armstrong/agitated_6"
+      }
+    ]
+  },
+  "armstrong_ambient": {
+    "sounds": [
+      {
+        "name": "shampoo:armstrong/ambient_1"
+      },
+      {
+        "name": "shampoo:armstrong/ambient_10"
+      },
+      {
+        "name": "shampoo:armstrong/ambient_11"
+      },
+      {
+        "name": "shampoo:armstrong/ambient_12"
+      },
+      {
+        "name": "shampoo:armstrong/ambient_2"
+      },
+      {
+        "name": "shampoo:armstrong/ambient_3"
+      },
+      {
+        "name": "shampoo:armstrong/ambient_4"
+      },
+      {
+        "name": "shampoo:armstrong/ambient_5"
+      },
+      {
+        "name": "shampoo:armstrong/ambient_6"
+      },
+      {
+        "name": "shampoo:armstrong/ambient_7"
+      },
+      {
+        "name": "shampoo:armstrong/ambient_8"
+      },
+      {
+        "name": "shampoo:armstrong/ambient_9"
+      }
+    ]
+  },
+  "armstrong_angry": {
+    "sounds": [
+      {
+        "name": "shampoo:armstrong/angry_1"
+      },
+      {
+        "name": "shampoo:armstrong/angry_2"
+      },
+      {
+        "name": "shampoo:armstrong/angry_3"
+      },
+      {
+        "name": "shampoo:armstrong/angry_4"
+      },
+      {
+        "name": "shampoo:armstrong/angry_5"
+      },
+      {
+        "name": "shampoo:armstrong/angry_6"
+      }
+    ]
+  },
+  "armstrong_attack": {
+    "sounds": [
+      {
+        "name": "shampoo:armstrong/attack_impact_1"
+      },
+      {
+        "name": "shampoo:armstrong/attack_impact_2"
+      }
+    ]
+  },
+  "armstrong_death": {
+    "sounds": [
+      {
+        "name": "shampoo:armstrong/death_1"
+      },
+      {
+        "name": "shampoo:armstrong/death_2"
+      }
+    ]
+  },
+  "armstrong_dig": {
+    "sounds": [
+      {
+        "name": "shampoo:armstrong/dig"
+      }
+    ]
+  },
+  "armstrong_emerge": {
+    "sounds": [
+      {
+        "name": "shampoo:armstrong/emerge"
+      }
+    ]
+  },
+  "armstrong_heartbeat": {
+    "sounds": [
+      {
+        "name": "shampoo:armstrong/heartbeat_1"
+      },
+      {
+        "name": "shampoo:armstrong/heartbeat_2"
+      },
+      {
+        "name": "shampoo:armstrong/heartbeat_3"
+      },
+      {
+        "name": "shampoo:armstrong/heartbeat_4"
+      }
+    ]
+  },
+  "armstrong_hurt": {
+    "sounds": [
+      {
+        "name": "shampoo:armstrong/hurt_1"
+      },
+      {
+        "name": "shampoo:armstrong/hurt_2"
+      },
+      {
+        "name": "shampoo:armstrong/hurt_3"
+      },
+      {
+        "name": "shampoo:armstrong/hurt_4"
+      }
+    ]
+  },
+  "armstrong_listening": {
+    "sounds": [
+      {
+        "name": "shampoo:armstrong/listening_1"
+      },
+      {
+        "name": "shampoo:armstrong/listening_2"
+      },
+      {
+        "name": "shampoo:armstrong/listening_3"
+      },
+      {
+        "name": "shampoo:armstrong/listening_4"
+      },
+      {
+        "name": "shampoo:armstrong/listening_5"
+      },
+      {
+        "name": "shampoo:armstrong/listening_angry_1"
+      },
+      {
+        "name": "shampoo:armstrong/listening_angry_2"
+      },
+      {
+        "name": "shampoo:armstrong/listening_angry_3"
+      },
+      {
+        "name": "shampoo:armstrong/listening_angry_4"
+      },
+      {
+        "name": "shampoo:armstrong/listening_angry_5"
+      }
+    ]
+  },
+  "armstrong_nearby": {
+    "sounds": [
+      {
+        "name": "shampoo:armstrong/nearby_closer_1"
+      },
+      {
+        "name": "shampoo:armstrong/nearby_closer_2"
+      },
+      {
+        "name": "shampoo:armstrong/nearby_closer_3"
+      },
+      {
+        "name": "shampoo:armstrong/nearby_closest_1"
+      },
+      {
+        "name": "shampoo:armstrong/nearby_closest_2"
+      },
+      {
+        "name": "shampoo:armstrong/nearby_closest_3"
+      },
+      {
+        "name": "shampoo:armstrong/nearby_close_1"
+      },
+      {
+        "name": "shampoo:armstrong/nearby_close_2"
+      },
+      {
+        "name": "shampoo:armstrong/nearby_close_3"
+      },
+      {
+        "name": "shampoo:armstrong/nearby_close_4"
+      }
+    ]
+  },
+  "armstrong_roar": {
+    "sounds": [
+      {
+        "name": "shampoo:armstrong/roar_1"
+      },
+      {
+        "name": "shampoo:armstrong/roar_2"
+      },
+      {
+        "name": "shampoo:armstrong/roar_3"
+      },
+      {
+        "name": "shampoo:armstrong/roar_4"
+      },
+      {
+        "name": "shampoo:armstrong/roar_5"
+      }
+    ]
+  },
+  "armstrong_sniff": {
+    "sounds": [
+      {
+        "name": "shampoo:armstrong/sniff_1"
+      },
+      {
+        "name": "shampoo:armstrong/sniff_2"
+      },
+      {
+        "name": "shampoo:armstrong/sniff_3"
+      },
+      {
+        "name": "shampoo:armstrong/sniff_4"
+      }
+    ]
+  },
+  "armstrong_sonic": {
+    "sounds": [
+      {
+        "name": "shampoo:armstrong/sonic_boom1"
+      },
+      {
+        "name": "shampoo:armstrong/sonic_boom2"
+      },
+      {
+        "name": "shampoo:armstrong/sonic_boom3"
+      },
+      {
+        "name": "shampoo:armstrong/sonic_boom4"
+      },
+      {
+        "name": "shampoo:armstrong/sonic_charge1"
+      },
+      {
+        "name": "shampoo:armstrong/sonic_charge2"
+      },
+      {
+        "name": "shampoo:armstrong/sonic_charge3"
+      },
+      {
+        "name": "shampoo:armstrong/sonic_charge4"
+      }
+    ]
+  },
+  "armstrong_step": {
+    "sounds": [
+      {
+        "name": "shampoo:armstrong/step_1"
+      },
+      {
+        "name": "shampoo:armstrong/step_2"
+      },
+      {
+        "name": "shampoo:armstrong/step_3"
+      },
+      {
+        "name": "shampoo:armstrong/step_4"
+      }
+    ]
+  },
+  "armstrong_tendril": {
+    "sounds": [
+      {
+        "name": "shampoo:armstrong/tendril_clicks_1"
+      },
+      {
+        "name": "shampoo:armstrong/tendril_clicks_2"
+      },
+      {
+        "name": "shampoo:armstrong/tendril_clicks_3"
+      },
+      {
+        "name": "shampoo:armstrong/tendril_clicks_4"
+      },
+      {
+        "name": "shampoo:armstrong/tendril_clicks_5"
+      },
+      {
+        "name": "shampoo:armstrong/tendril_clicks_6"
       }
     ]
   }
