@@ -1,8 +1,9 @@
 package com.thomas.shampoo.entity;
 
+import com.thomas.shampoo.entity.ai.ArmstrongNodeEvaluator;
+import com.thomas.shampoo.entity.ai.ArmstrongPathNavigation;
 import com.thomas.shampoo.network.PacketHandler;
 import com.thomas.shampoo.network.SStopArmstrongMusicPacket;
-import com.thomas.shampoo.world.ArmstrongNodeEvaluator;
 import com.thomas.shampoo.world.ModSounds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -10,18 +11,23 @@ import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.Music;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.BossEvent;
+import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MoverType;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.behavior.warden.SonicBoom;
-import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
+import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
+import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.PathFinder;
@@ -39,13 +45,18 @@ public class StevenArmstrong extends Monster {
     public StevenArmstrong(EntityType<? extends Monster> type, Level level) {
         super(type, level);
         this.getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(SIGHT_RANGE);
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Mob.class, 0,
+                false, false, e -> !(e instanceof StevenArmstrong)));
+        this.goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.0D, true));
+        this.goalSelector.addGoal(8, new LookAtPlayerGoal(this, Player.class, 8.0F));
+        this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
     }
 
     @Override
-    protected PathNavigation createNavigation(Level level) {
-        return new GroundPathNavigation(this, level) {
+    protected @NotNull PathNavigation createNavigation(@NotNull Level level) {
+        return new ArmstrongPathNavigation(this, level) {
             @Override
-            protected PathFinder createPathFinder(int range) {
+            protected @NotNull PathFinder createPathFinder(int range) {
                 nodeEvaluator = new ArmstrongNodeEvaluator();
                 return new PathFinder(this.nodeEvaluator, range);
             }
@@ -55,15 +66,16 @@ public class StevenArmstrong extends Monster {
     @Override
     public void aiStep() {
         super.aiStep();
+
         // Decrement the jump cooldown if it's above 0
         if (this.jumpCooldown > 0) {
             this.jumpCooldown--;
         }
 
-        // Check conditions for jumping
-        if (this.onGround() && this.jumpCooldown == 0) {
-            this.jump();  // This triggers the jump
-            this.jumpCooldown = 100;  // Reset cooldown to prevent frequent jumping
+        LivingEntity target = this.getTarget();
+        if (target != null && this.onGround() && this.jumpCooldown == 0 && shouldJumpToTarget(target)) {
+            this.jump();  // Jump towards the target
+            this.jumpCooldown = 100;  // Reset cooldown
         }
 
         // Play boss music if not playing already
@@ -72,8 +84,16 @@ public class StevenArmstrong extends Monster {
         }
     }
 
+    private boolean shouldJumpToTarget(LivingEntity target) {
+        // Check if the target is within a straight line but on a different elevation
+        double dx = Math.abs(this.getX() - target.getX());
+        double dz = Math.abs(this.getZ() - target.getZ());
+        double dy = target.getY() - this.getY();
+        return dx <= 5 && dz <= 5 && dy > 1 && dy < 4;  // Example condition, adjust as needed
+    }
+
     @Override
-    public void die(DamageSource cause) {
+    public void die(@NotNull DamageSource cause) {
         super.die(cause);
 
         if (!level().isClientSide) {  // Ensure this runs on the server side
@@ -113,6 +133,18 @@ public class StevenArmstrong extends Monster {
         }
     }
 
+    @Override
+    protected void populateDefaultEquipmentSlots(@NotNull RandomSource r, @NotNull DifficultyInstance d) {
+        // Create an ItemStack for leather boots
+        ItemStack boots = new ItemStack(Items.LEATHER_BOOTS);
+
+        // Apply the Depth Strider III enchantment to the boots
+        boots.enchant(Enchantments.DEPTH_STRIDER, 3);
+
+        // Set the enchanted boots to the mob's feet slot
+        setItemSlot(EquipmentSlot.FEET, boots);
+    }
+
     //
 //    @Override
 //    protected void checkAndPerformAttack(LivingEntity enemy, double distToEnemySqr) {
@@ -124,15 +156,6 @@ public class StevenArmstrong extends Monster {
 //        }
 //    }
 //
-    @Override
-    public void move(MoverType type, Vec3 movement) {
-        if (this.jumpCooldown > 0) {
-            // This controls the entity while it's in the jump cooldown phase
-            movement = movement.add(0, 0.1, 0);  // Increase upward motion slightly
-        }
-        super.move(type, movement);
-    }
-
     @Nullable
     @Override
     protected SoundEvent getAmbientSound() {
@@ -157,6 +180,5 @@ public class StevenArmstrong extends Monster {
         SonicBoom.setCooldown(this, 40);
         return super.doHurtTarget(p_219472_);
     }
-
     // Additional methods for sonic boom, etc., would be implemented here.
 }
