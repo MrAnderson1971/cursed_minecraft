@@ -11,8 +11,10 @@
   "item.shampoo.thomas_and_friends_3_in_1_shampoo_hair_and_body_wash": "Thomas & Friends 3 in 1 Shampoo, Hair, and Body Wash",
   "item.shampoo.biden_spawn_egg": "Spawn Biden Blast",
   "item.shampoo.obama_spawn_egg": "Spawn Obamahameha",
+  "item.shampoo.tetrodotoxin": "Tetrodotoxin",
   "effect.shampoo.flying": "Flying",
   "effect.shampoo.laser": "Laser",
   "death.attack.laser": "%1$s was zapped by a laser.",
-  "death.attack.laser.player": "%1$s was zapped by a laser fired by %2$s."
+  "death.attack.laser.player": "%1$s was zapped by a laser fired by %2$s.",
+  "creativetab.heisenbergs_rv": "Heisenberg's RV"
 }
