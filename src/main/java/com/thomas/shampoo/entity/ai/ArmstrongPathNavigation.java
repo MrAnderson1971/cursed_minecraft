@@ -24,7 +24,7 @@ public class ArmstrongPathNavigation extends GroundPathNavigation {
         // Check only the next segment of the path or a few blocks ahead rather than the entire path segment ahead.
         int checkAheadRange = Math.min(pathIndex + 3, this.path.getNodeCount());  // Check up to 3 nodes ahead for more focused block destruction
 
-        debugWool();
+        //debugWool();
         this.checkAndDestroyBlocks(checkAheadRange);
 
         super.followThePath();

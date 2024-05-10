@@ -15,16 +15,16 @@ public class ArmstrongNodeEvaluator extends FlyNodeEvaluator {
 
     @Override
     public @NotNull BlockPathTypes getBlockPathType(@NotNull BlockGetter block, int x, int y, int z) {
-        return getBlockPathTypeStatic(block, new BlockPos.MutableBlockPos(x, y, z));
+        return getBlockPathTypeStatic(block, new BlockPos.MutableBlockPos(x, y, z), y);
     }
 
-    public static @NotNull BlockPathTypes getBlockPathTypeStatic(BlockGetter getter, BlockPos.MutableBlockPos pos) {
+    public static @NotNull BlockPathTypes getBlockPathTypeStatic(BlockGetter getter, BlockPos.MutableBlockPos pos, int y) {
         int i = pos.getX();
         int j = pos.getY();
         int k = pos.getZ();
-        BlockPathTypes blockpathtypes = ArmstrongNodeEvaluator.getBlockPathTypeRaw(getter, pos);
+        BlockPathTypes blockpathtypes = ArmstrongNodeEvaluator.getBlockPathTypeRaw(getter, pos, y);
         if (blockpathtypes == BlockPathTypes.OPEN && j >= getter.getMinBuildHeight() + 1) {
-            BlockPathTypes blockpathtypes1 = getBlockPathTypeRaw(getter, pos.set(i, j - 1, k));
+            BlockPathTypes blockpathtypes1 = getBlockPathTypeRaw(getter, pos.set(i, j - 1, k), y);
             blockpathtypes = blockpathtypes1 != BlockPathTypes.WALKABLE && blockpathtypes1 != BlockPathTypes.OPEN && blockpathtypes1 != BlockPathTypes.WATER && blockpathtypes1 != BlockPathTypes.LAVA ? BlockPathTypes.WALKABLE : BlockPathTypes.OPEN;
         }
 
@@ -35,14 +35,14 @@ public class ArmstrongNodeEvaluator extends FlyNodeEvaluator {
         return blockpathtypes;
     }
 
-    protected static @NotNull BlockPathTypes getBlockPathTypeRaw(BlockGetter level, @NotNull BlockPos pos) {
+    protected static @NotNull BlockPathTypes getBlockPathTypeRaw(BlockGetter level, @NotNull BlockPos pos, int y) {
         BlockState blockState = level.getBlockState(pos);
         if (WitherBoss.canDestroy(blockState)) {
             return BlockPathTypes.OPEN; // The mob can walk through this block if it's destructible
         }
 
         // Check for air directly above a solid block
-        if (blockState.isAir() && level.getBlockState(pos.below()).isSolidRender(level, pos.below())) {
+        if (blockState.isAir() && (level.getBlockState(pos.below()).isSolidRender(level, pos.below()) || pos.getY() <= y)) {
             return BlockPathTypes.OPEN; // Treat air above solid blocks as walkable.
         }
 

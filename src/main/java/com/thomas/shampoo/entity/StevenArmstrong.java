@@ -1,5 +1,6 @@
 package com.thomas.shampoo.entity;
 
+import com.thomas.shampoo.entity.ai.ArmstrongGoals;
 import com.thomas.shampoo.entity.ai.ArmstrongNodeEvaluator;
 import com.thomas.shampoo.entity.ai.ArmstrongPathNavigation;
 import com.thomas.shampoo.network.PacketHandler;
@@ -19,10 +20,7 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.behavior.warden.SonicBoom;
-import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
-import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
-import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
@@ -38,30 +36,55 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+import java.util.Random;
+
 public class StevenArmstrong extends Monster {
 
     private static final float SIGHT_RANGE = 50.0F; // Increased sight range
-    private static final float BASE_SPEED = 0.3F;
+    private static final float BASE_SPEED = 0.5F;
     private static final float MAX_HEALTH = 500;
+    public static final float ATTACK_DAMAGE = 15.0F;
+    private static final int MAX_COOLDOWN = 200;  // Cooldown time in ticks
+
     private double jumpCooldown;
     private final ServerBossEvent bossEvent = (ServerBossEvent)(new ServerBossEvent(this.getDisplayName(), BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.PROGRESS)).setDarkenScreen(true);
     public static final Music ARMSTRONG_MUSIC = new Music(ModSounds.ARMSTRONG_MUSIC.getHolder().orElseThrow(), 100, 200, true);;
+    private boolean hasTriggeredStartState = false;
+
+    private int attackCooldown;
+    private Goal activeGoal;
+    private final LookAtPlayerGoal lookAtPlayerGoal;
+    private final MeleeAttackGoal meleeAttackGoal;
+    private final RandomLookAroundGoal randomLookAroundGoal;
+    private final WaterAvoidingRandomStrollGoal waterAvoidingRandomStrollGoal;
+    private final HurtByTargetGoal hurtByTargetGoal;
+    private final NearestAttackableTargetGoal<LivingEntity> nearestAttackableTargetGoal;
+    private final List<Goal> armstrongGoals = List.of(new ArmstrongGoals.SonicBoomGoal(this),
+            new ArmstrongGoals.SmokeExplosionGoal(this),
+            new ArmstrongGoals.LavaTrapGoal(this));
 
     public StevenArmstrong(EntityType<? extends Monster> type, Level level) {
         super(type, level);
-        this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, LivingEntity.class, 0,
-                false, false, e -> !(e instanceof StevenArmstrong)));
-        this.goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.0D, true));
-        this.goalSelector.addGoal(8, new LookAtPlayerGoal(this, Player.class, 8.0F));
-        this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
-        this.goalSelector.addGoal(7, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+
+        lookAtPlayerGoal = new LookAtPlayerGoal(this, Player.class, 8.0F);
+        meleeAttackGoal = new MeleeAttackGoal(this, 1.0D, true);
+        randomLookAroundGoal = new RandomLookAroundGoal(this);
+        waterAvoidingRandomStrollGoal = new WaterAvoidingRandomStrollGoal(this, 1.0D);
+        hurtByTargetGoal = new HurtByTargetGoal(this);
+        nearestAttackableTargetGoal = new NearestAttackableTargetGoal<>(this, LivingEntity.class, 0,
+                false, false, e -> !(e instanceof StevenArmstrong));
+
+        // Initially, only the look at player goal is high priority
+        this.goalSelector.addGoal(3, lookAtPlayerGoal);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, MAX_HEALTH)
                 .add(Attributes.MOVEMENT_SPEED, BASE_SPEED)
-                .add(Attributes.FOLLOW_RANGE, SIGHT_RANGE);
+                .add(Attributes.FOLLOW_RANGE, SIGHT_RANGE)
+                .add(Attributes.KNOCKBACK_RESISTANCE, 1.0D)
+                .add(Attributes.ATTACK_DAMAGE, ATTACK_DAMAGE);
     }
 
     @Override
@@ -78,6 +101,32 @@ public class StevenArmstrong extends Monster {
     @Override
     public void aiStep() {
         super.aiStep();
+        // Check health percentage
+        double healthPercent = this.getHealth() / this.getMaxHealth();
+
+        if (healthPercent > 0.9) {
+            // If health is above 90%, reset the low health state trigger if it was set
+            if (hasTriggeredStartState) {
+                hasTriggeredStartState = false;
+            }
+            // If health is above 90%, focus on looking at the player
+            ensureGoalActive(goalSelector, lookAtPlayerGoal, 3);
+            removeGoalIfActive(goalSelector, meleeAttackGoal);
+            removeGoalIfActive(goalSelector, randomLookAroundGoal);
+            removeGoalIfActive(goalSelector, waterAvoidingRandomStrollGoal);
+            removeGoalIfActive(targetSelector, hurtByTargetGoal);
+            removeGoalIfActive(targetSelector, nearestAttackableTargetGoal);
+        } else if (!hasTriggeredStartState) {
+            hasTriggeredStartState = true;
+            playSound(ModSounds.ARMSTRONG_EMERGE.get(), 10.0F, 1.0F);
+            // If health drops below 90%, activate all goals
+            ensureGoalActive(goalSelector, meleeAttackGoal, 8);
+            ensureGoalActive(goalSelector, randomLookAroundGoal, 8);
+            ensureGoalActive(goalSelector, waterAvoidingRandomStrollGoal, 7);
+            ensureGoalActive(goalSelector, lookAtPlayerGoal, 8);
+            ensureGoalActive(targetSelector, hurtByTargetGoal, 3);
+            ensureGoalActive(targetSelector, nearestAttackableTargetGoal, 2);
+        }
 
         // Decrement the jump cooldown if it's above 0
         if (this.jumpCooldown > 0) {
@@ -86,7 +135,7 @@ public class StevenArmstrong extends Monster {
 
         LivingEntity target = this.getTarget();
         if (target != null && this.onGround() && this.jumpCooldown == 0 && shouldJumpToTarget(target)) {
-            this.jump();  // Jump towards the target
+            this.jumpTowardsTarget(target);  // Jump towards the target
             this.jumpCooldown = 100;  // Reset cooldown
         }
 
@@ -94,6 +143,47 @@ public class StevenArmstrong extends Monster {
         if (!Minecraft.getInstance().getMusicManager().isPlayingMusic(ARMSTRONG_MUSIC) && isAlive()) {
             Minecraft.getInstance().getMusicManager().startPlaying(ARMSTRONG_MUSIC);
         }
+
+        if (attackCooldown > 0) {
+            attackCooldown--;
+        }
+
+        if (attackCooldown <= 0 && this.getTarget() != null && activeGoal == null) {
+            int choice = random.nextInt(armstrongGoals.size());
+            Goal candidateGoal = armstrongGoals.get(choice);
+
+            if (candidateGoal.canUse()) {
+                activeGoal = candidateGoal;
+                activeGoal.start();
+                attackCooldown = MAX_COOLDOWN;  // Reset cooldown
+            }
+        }
+
+        if (activeGoal != null) {
+            if (activeGoal.canContinueToUse()) {
+                activeGoal.tick();
+            } else {
+                activeGoal.stop();
+                activeGoal = null;  // Reset the active goal after stopping
+            }
+        }
+    }
+
+    private void ensureGoalActive(GoalSelector selector,Goal goal, int priority) {
+        if (!isGoalActive(selector, goal)) {
+            selector.addGoal(priority, goal);
+        }
+    }
+
+    private void removeGoalIfActive(GoalSelector selector, Goal goal) {
+        if (isGoalActive(selector, goal)) {
+            selector.removeGoal(goal);
+        }
+    }
+
+    private boolean isGoalActive(GoalSelector selector, Goal goal) {
+        return selector.getAvailableGoals().stream()
+                .anyMatch(wrappedGoal -> wrappedGoal.getGoal() == goal);
     }
 
     private boolean shouldJumpToTarget(LivingEntity target) {
@@ -102,6 +192,16 @@ public class StevenArmstrong extends Monster {
         double dz = Math.abs(this.getZ() - target.getZ());
         double dy = target.getY() - this.getY();
         return dx <= 5 && dz <= 5 && dy > 1 && dy < 4;  // Example condition, adjust as needed
+    }
+
+    private void jumpTowardsTarget(LivingEntity target) {
+        if (this.isAlive()) {
+            Vec3 direction = new Vec3(target.getX() - this.getX(), 0, target.getZ() - this.getZ()).normalize();
+            double horizontalSpeedFactor = 0.8;
+            double verticalSpeedFactor = 0.9;
+            this.setDeltaMovement(direction.x * horizontalSpeedFactor, verticalSpeedFactor, direction.z * horizontalSpeedFactor);
+            this.hasImpulse = true;
+        }
     }
 
     @Override
@@ -137,14 +237,6 @@ public class StevenArmstrong extends Monster {
         this.bossEvent.removePlayer(player);
     }
 
-    private void jump() {
-        if (this.isAlive()) {
-            Vec3 motion = this.getDeltaMovement();
-            this.setDeltaMovement(motion.x, 1, motion.z);  // You can adjust the 0.5 to change the jump strength
-            this.hasImpulse = true;
-        }
-    }
-
     @Override
     protected void populateDefaultEquipmentSlots(@NotNull RandomSource r, @NotNull DifficultyInstance d) {
         // Create an ItemStack for leather boots
@@ -157,17 +249,6 @@ public class StevenArmstrong extends Monster {
         setItemSlot(EquipmentSlot.FEET, boots);
     }
 
-    //
-//    @Override
-//    protected void checkAndPerformAttack(LivingEntity enemy, double distToEnemySqr) {
-//        super.checkAndPerformAttack(enemy, distToEnemySqr);
-//        if (distToEnemySqr < getAttackReachSqr(enemy) && this.getAttackCooldown() <= 0) {
-//            this.performMeleeAttack(enemy); // Perform melee attack
-//        } else if (distToEnemySqr <= 400.0D) { // Range for sonic boom
-//            this.performSonicBoomAttack(enemy);
-//        }
-//    }
-//
     @Nullable
     @Override
     protected SoundEvent getAmbientSound() {
