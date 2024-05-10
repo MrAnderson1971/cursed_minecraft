@@ -2,6 +2,7 @@ package com.thomas.shampoo;
 
 import com.thomas.shampoo.effect.EffectInit;
 import com.thomas.shampoo.entity.EntityInit;
+import com.thomas.shampoo.item.CreativeTabs;
 import com.thomas.shampoo.item.ItemInit;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
@@ -20,5 +21,6 @@ public class ShampooMod
         BlockInit.BLOCKS.register(modEventBus);
         EffectInit.MOB_EFFECTS.register(modEventBus);
         EntityInit.ENTITIES.register(modEventBus);
+        CreativeTabs.CREATIVE_TABS.register(modEventBus);
     }
 }
