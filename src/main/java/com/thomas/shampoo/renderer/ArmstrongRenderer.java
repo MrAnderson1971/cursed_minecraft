@@ -1,13 +1,12 @@
 package com.thomas.shampoo.renderer;
 
 import com.thomas.shampoo.entity.StevenArmstrong;
-import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import org.jetbrains.annotations.NotNull;
 
 import static com.thomas.shampoo.ShampooMod.MODID;
 
@@ -19,7 +18,7 @@ public class ArmstrongRenderer extends MobRenderer<StevenArmstrong, ArmstrongMod
         super(context, new ArmstrongModel<>(context.bakeLayer(ModModelLayers.ARMSTRONG_LAYER)), 0.9F);
     }
 
-    public ResourceLocation getTextureLocation(StevenArmstrong entity) {
+    public @NotNull ResourceLocation getTextureLocation(@NotNull StevenArmstrong entity) {
         return TEXTURE;
     }
 }

@@ -6,13 +6,16 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
 import net.minecraft.world.level.pathfinder.FlyNodeEvaluator;
+import net.minecraft.world.level.pathfinder.Node;
 import org.jetbrains.annotations.NotNull;
+
+import javax.annotation.Nullable;
 
 public class ArmstrongNodeEvaluator extends FlyNodeEvaluator {
 
     @Override
-    public @NotNull BlockPathTypes getBlockPathType(@NotNull BlockGetter p_77576_, int p_77577_, int p_77578_, int p_77579_) {
-        return getBlockPathTypeStatic(p_77576_, new BlockPos.MutableBlockPos(p_77577_, p_77578_, p_77579_));
+    public @NotNull BlockPathTypes getBlockPathType(@NotNull BlockGetter block, int x, int y, int z) {
+        return getBlockPathTypeStatic(block, new BlockPos.MutableBlockPos(x, y, z));
     }
 
     public static @NotNull BlockPathTypes getBlockPathTypeStatic(BlockGetter getter, BlockPos.MutableBlockPos pos) {
@@ -48,5 +51,19 @@ public class ArmstrongNodeEvaluator extends FlyNodeEvaluator {
             return BlockPathTypes.BLOCKED; // Default to BLOCKED if none of the conditions are met.
         }
         return BlockPathTypes.OPEN; // Default open for any other non-handled cases.
+    }
+
+    @Override
+    @Nullable
+    protected Node findAcceptedNode(int x, int y, int z) {
+        BlockGetter level = this.mob.level();  // Assuming 'mob' has a reference to the level.
+        BlockPos pos = new BlockPos(x, y, z);
+        BlockState blockState = level.getBlockState(pos);
+
+        // If the block is air and the block directly below is also air, return null.
+        if (blockState.isAir() && level.getBlockState(pos.below()).isAir()) {
+            return null;
+        }
+        return super.findAcceptedNode(x, y, z);
     }
 }

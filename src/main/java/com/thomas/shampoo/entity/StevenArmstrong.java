@@ -16,11 +16,14 @@ import net.minecraft.world.BossEvent;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.behavior.warden.SonicBoom;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
+import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.monster.Monster;
@@ -38,18 +41,27 @@ import org.jetbrains.annotations.Nullable;
 public class StevenArmstrong extends Monster {
 
     private static final float SIGHT_RANGE = 50.0F; // Increased sight range
+    private static final float BASE_SPEED = 0.3F;
+    private static final float MAX_HEALTH = 500;
     private double jumpCooldown;
     private final ServerBossEvent bossEvent = (ServerBossEvent)(new ServerBossEvent(this.getDisplayName(), BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.PROGRESS)).setDarkenScreen(true);
     public static final Music ARMSTRONG_MUSIC = new Music(ModSounds.ARMSTRONG_MUSIC.getHolder().orElseThrow(), 100, 200, true);;
 
     public StevenArmstrong(EntityType<? extends Monster> type, Level level) {
         super(type, level);
-        this.getAttribute(Attributes.FOLLOW_RANGE).setBaseValue(SIGHT_RANGE);
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Mob.class, 0,
+        this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, LivingEntity.class, 0,
                 false, false, e -> !(e instanceof StevenArmstrong)));
         this.goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.0D, true));
         this.goalSelector.addGoal(8, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(7, new WaterAvoidingRandomStrollGoal(this, 1.0D));
+    }
+
+    public static AttributeSupplier.Builder createAttributes() {
+        return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, MAX_HEALTH)
+                .add(Attributes.MOVEMENT_SPEED, BASE_SPEED)
+                .add(Attributes.FOLLOW_RANGE, SIGHT_RANGE);
     }
 
     @Override
@@ -162,23 +174,32 @@ public class StevenArmstrong extends Monster {
         return ModSounds.ARMSTRONG_ROAR.get();
     }
 
-    protected SoundEvent getHurtSound(DamageSource p_219440_) {
+    @Override
+    protected SoundEvent getHurtSound(@NotNull DamageSource d) {
         return ModSounds.ARMSTRONG_HURT.get();
     }
 
+    @Override
     protected SoundEvent getDeathSound() {
         return ModSounds.ARMSTRONG_DEATH.get();
     }
 
-    protected void playStepSound(BlockPos p_219431_, BlockState p_219432_) {
+    @Override
+    protected void playStepSound(@NotNull BlockPos p, @NotNull BlockState s) {
         this.playSound(ModSounds.ARMSTRONG_STEP.get(), 10.0F, 1.0F);
     }
 
-    public boolean doHurtTarget(Entity p_219472_) {
+    @Override
+    public boolean doHurtTarget(@NotNull Entity target) {
         this.level().broadcastEntityEvent(this, (byte)4);
         this.playSound(ModSounds.ARMSTRONG_ATTACK_IMPACT.get(), 10.0F, this.getVoicePitch());
         SonicBoom.setCooldown(this, 40);
-        return super.doHurtTarget(p_219472_);
+        return super.doHurtTarget(target);
+    }
+
+    @Override
+    public boolean removeWhenFarAway(double d) {
+        return false;
     }
     // Additional methods for sonic boom, etc., would be implemented here.
 }

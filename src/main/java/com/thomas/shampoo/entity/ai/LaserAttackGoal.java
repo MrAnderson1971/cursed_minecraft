@@ -1,10 +1,10 @@
-package com.thomas.shampoo.entity;
+package com.thomas.shampoo.entity.ai;
 
+import com.thomas.shampoo.entity.Unlaserable;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.Monster;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Predicate;

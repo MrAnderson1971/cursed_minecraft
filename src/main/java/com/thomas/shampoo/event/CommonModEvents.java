@@ -3,10 +3,10 @@ package com.thomas.shampoo.event;
 import com.thomas.shampoo.entity.EntityInit;
 import com.thomas.shampoo.entity.Biden;
 import com.thomas.shampoo.entity.Obama;
+import com.thomas.shampoo.entity.StevenArmstrong;
 import com.thomas.shampoo.network.PacketHandler;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.entity.SpawnPlacementRegisterEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -23,7 +23,7 @@ public class CommonModEvents {
     public static void entityAttributes(EntityAttributeCreationEvent event) {
         event.put(EntityInit.BIDEN.get(), Biden.createAttributes().build());
         event.put(EntityInit.OBAMA.get(), Obama.createAttributes().build());
-        event.put(EntityInit.STEVEN_ARMSTRONG.get(), Warden.createAttributes().build());
+        event.put(EntityInit.STEVEN_ARMSTRONG.get(), StevenArmstrong.createAttributes().build());
     }
 
     @SubscribeEvent
