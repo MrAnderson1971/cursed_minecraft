@@ -8,7 +8,9 @@ import com.thomas.shampoo.network.SStopArmstrongMusicPacket;
 import com.thomas.shampoo.world.ModSounds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerBossEvent;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.Music;
 import net.minecraft.sounds.SoundEvent;
@@ -16,6 +18,8 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -37,7 +41,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Random;
 
 public class StevenArmstrong extends Monster {
 
@@ -48,11 +51,14 @@ public class StevenArmstrong extends Monster {
     private static final int MAX_COOLDOWN = 200;  // Cooldown time in ticks
 
     private double jumpCooldown;
-    private final ServerBossEvent bossEvent = (ServerBossEvent)(new ServerBossEvent(this.getDisplayName(), BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.PROGRESS)).setDarkenScreen(true);
-    public static final Music ARMSTRONG_MUSIC = new Music(ModSounds.ARMSTRONG_MUSIC.getHolder().orElseThrow(), 100, 200, true);;
+    private final ServerBossEvent bossEvent = (ServerBossEvent) (new ServerBossEvent(this.getDisplayName(), BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.PROGRESS)).setDarkenScreen(true);
+    public static final Music ARMSTRONG_MUSIC = new Music(ModSounds.ARMSTRONG_MUSIC.getHolder().orElseThrow(), 100, 200, true);
+
     private boolean hasTriggeredStartState = false;
+    private boolean hasTriggeredLowHealthState = false;
 
     private int attackCooldown;
+    private boolean jumped;
     private Goal activeGoal;
     private final LookAtPlayerGoal lookAtPlayerGoal;
     private final MeleeAttackGoal meleeAttackGoal;
@@ -128,6 +134,16 @@ public class StevenArmstrong extends Monster {
             ensureGoalActive(targetSelector, nearestAttackableTargetGoal, 2);
         }
 
+        if (healthPercent < 0.5) {
+            if (!hasTriggeredLowHealthState) {
+                hasTriggeredLowHealthState = true;
+                playSound(ModSounds.ARMSTRONG_DIG.get(), 10.0F, 1.0F);
+            }
+            // Apply Regeneration II and Resistance I if below 50% health
+            this.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 40, 1, false, false, true));
+            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 40, 0, false, false, true));
+        }
+
         // Decrement the jump cooldown if it's above 0
         if (this.jumpCooldown > 0) {
             this.jumpCooldown--;
@@ -167,9 +183,51 @@ public class StevenArmstrong extends Monster {
                 activeGoal = null;  // Reset the active goal after stopping
             }
         }
+
+        if (this.onGround() && jumped) {
+            jumped = false; // Reset the jump flag
+            triggerGroundPound();
+        }
     }
 
-    private void ensureGoalActive(GoalSelector selector,Goal goal, int priority) {
+    private void triggerGroundPound() {
+        if (this.getHealth() <= this.getMaxHealth() * 0.5) {
+            // Radius within which the effect is applied
+            double radius = 5.0;
+            List<LivingEntity> nearbyEntities = this.level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(radius), e -> e != this && e.isAlive());
+            double radiusSquared = radius * radius;  // Calculate square of radius to use in comparison
+
+            // Filter entities to include only those within the spherical distance
+            nearbyEntities = nearbyEntities.stream()
+                    .filter(e -> e.position().distanceToSqr(this.position()) <= radiusSquared
+                            && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(e))
+                    .toList();
+
+            // Apply a knock-up effect and show particles
+            for (LivingEntity entity : nearbyEntities) {
+                double upForce = 1.0;
+                entity.setDeltaMovement(entity.getDeltaMovement().add(0, upForce, 0));
+                entity.hurtMarked = true;
+            }
+
+            // Display particles in a circle around the mob
+            displaySweepParticles();
+        }
+    }
+
+    private void displaySweepParticles() {
+        double radius = 5.0;
+        if (level() instanceof ServerLevel sl) {
+            for (int i = 0; i < 360; i += 10) {
+                double rad = Math.toRadians(i);
+                double x = this.getX() + radius * Math.cos(rad);
+                double z = this.getZ() + radius * Math.sin(rad);
+                sl.sendParticles(ParticleTypes.SWEEP_ATTACK, x, this.getY(), z, 10, 0.1, 0.1, 0.1, 0);
+            }
+        }
+    }
+
+    private void ensureGoalActive(GoalSelector selector, Goal goal, int priority) {
         if (!isGoalActive(selector, goal)) {
             selector.addGoal(priority, goal);
         }
@@ -201,6 +259,7 @@ public class StevenArmstrong extends Monster {
             double verticalSpeedFactor = 0.9;
             this.setDeltaMovement(direction.x * horizontalSpeedFactor, verticalSpeedFactor, direction.z * horizontalSpeedFactor);
             this.hasImpulse = true;
+            jumped = true;
         }
     }
 
@@ -272,7 +331,7 @@ public class StevenArmstrong extends Monster {
 
     @Override
     public boolean doHurtTarget(@NotNull Entity target) {
-        this.level().broadcastEntityEvent(this, (byte)4);
+        this.level().broadcastEntityEvent(this, (byte) 4);
         this.playSound(ModSounds.ARMSTRONG_ATTACK_IMPACT.get(), 10.0F, this.getVoicePitch());
         SonicBoom.setCooldown(this, 40);
         return super.doHurtTarget(target);
@@ -282,5 +341,4 @@ public class StevenArmstrong extends Monster {
     public boolean removeWhenFarAway(double d) {
         return false;
     }
-    // Additional methods for sonic boom, etc., would be implemented here.
 }
