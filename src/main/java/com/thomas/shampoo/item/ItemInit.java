@@ -58,6 +58,15 @@ public class ItemInit {
                             .build())
             ));
 
+    public static final RegistryObject<Item> TETRODOTOXIN = ITEMS.register("tetrodotoxin",
+            () -> new Item(new Item.Properties()
+                    .stacksTo(16)
+                    .food(new FoodProperties.Builder()
+                    .alwaysEat()
+                    .effect(() -> new MobEffectInstance(EffectInit.LASER.get(), 200, 0), 1)
+                    .build())
+            ));
+
     // Water
     public static final RegistryObject<Item> WATER_ITEM = ITEMS.register("water_item",
             () -> new Item(new Item.Properties()));
@@ -70,6 +79,10 @@ public class ItemInit {
 
     public static final RegistryObject<ForgeSpawnEggItem> ARMSTRONG_SPAWN_EGG = ITEMS.register("steven_armstrong_spawn_egg",
             () -> new ForgeSpawnEggItem(EntityInit.STEVEN_ARMSTRONG, 0xFFFFFF, 0xFAB5A9, new Item.Properties()));
+
+    // just for icon
+    public static final RegistryObject<Item> HEISENBERG = ITEMS.register("heisenberg",
+            () -> new Item(new Item.Properties()));
 
     @SubscribeEvent
     public static void buildContents(BuildCreativeModeTabContentsEvent event) {

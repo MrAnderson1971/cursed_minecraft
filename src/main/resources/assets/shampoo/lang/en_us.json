@@ -12,9 +12,12 @@
   "item.shampoo.biden_spawn_egg": "Spawn Biden Blast",
   "item.shampoo.obama_spawn_egg": "Spawn Obamahameha",
   "item.shampoo.steven_armstrong_spawn_egg": "Spawn Steven Armstrong",
+  "item.shampoo.tetrodotoxin": "Tetrodotoxin",
   "effect.shampoo.flying": "Flying",
   "effect.shampoo.laser": "Laser",
   "death.attack.laser": "%1$s was zapped by a laser.",
   "death.attack.laser.player": "%1$s was zapped by a laser fired by %2$s.",
-  "entity.shampoo.steven_armstrong": "Senator Steven Armstrong"
+  "entity.shampoo.steven_armstrong": "Senator Steven Armstrong",
+  "death.attack.laser.player": "%1$s was zapped by a laser fired by %2$s.",
+  "creativetab.heisenbergs_rv": "Heisenberg's RV"
 }
