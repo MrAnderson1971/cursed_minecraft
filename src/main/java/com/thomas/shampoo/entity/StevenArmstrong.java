@@ -74,6 +74,7 @@ public class StevenArmstrong extends Monster {
             new ArmstrongGoals.LavaTrapGoal(this));
 
     public AnimationState attackAnimationState = new AnimationState();
+    public AnimationState sonicBoomAnimationState = new AnimationState();
 
     public StevenArmstrong(EntityType<? extends Monster> type, Level level) {
         super(type, level);
@@ -111,10 +112,16 @@ public class StevenArmstrong extends Monster {
 
     @Override
     public void handleEntityEvent(byte eventCode) {
-        if (eventCode == 4) {
-            attackAnimationState.start(tickCount);
-        } else {
-            super.handleEntityEvent(eventCode);
+        switch (eventCode) {
+            case 4:
+                attackAnimationState.start(tickCount);
+                break;
+            case 62:
+                attackAnimationState.stop();
+                sonicBoomAnimationState.start(tickCount);
+                break;
+            default:
+                super.handleEntityEvent(eventCode);
         }
     }
 
@@ -187,6 +194,7 @@ public class StevenArmstrong extends Monster {
                 activeGoal = candidateGoal;
                 activeGoal.start();
                 attackCooldown = MAX_COOLDOWN;  // Reset cooldown
+                level().broadcastEntityEvent(this, (byte) 62);
             }
         }
 

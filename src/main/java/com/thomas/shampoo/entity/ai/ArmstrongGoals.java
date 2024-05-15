@@ -11,7 +11,6 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
@@ -26,6 +25,7 @@ public class ArmstrongGoals {
         private int timer;
         private BlockPos targetPos;
         private boolean using;
+        private int animationDelay;
 
         public SmokeExplosionGoal(StevenArmstrong mob) {
             this.mob = mob;
@@ -40,17 +40,39 @@ public class ArmstrongGoals {
 
         @Override
         public void start() {
-            mob.playSound(ModSounds.ARMSTRONG_AGITATED.get(),3.0F, 1.0F);
-            this.targetPos = mob.getTarget().blockPosition();
-            this.timer = 20; // 1 second until explosion
-            using = true;
-            Level world = mob.level();
-            spawnInitialParticles(world, mob.getEyePosition());
+            animationDelay = 40; // Delay before starting the explosion sequence
+            timer = -1; // Ensure timer is inactive until animationDelay is complete
+            using = true; // Start using this goal
         }
 
         @Override
         public boolean canContinueToUse() {
             return using;
+        }
+
+        @Override
+        public void tick() {
+            if (animationDelay > 0) {
+                animationDelay--;
+                if (animationDelay == 0) {
+                    // Now start the explosion timer
+                    timer = 20; // Set the timer for the explosion countdown
+                    mob.playSound(ModSounds.ARMSTRONG_AGITATED.get(), 3.0F, 1.0F);
+                    targetPos = mob.getTarget().blockPosition();
+                    spawnInitialParticles(mob.level(), mob.getEyePosition());
+                }
+            } else if (timer > 0) {
+                timer--;
+                if (mob.level() instanceof ServerLevel sl) {
+                    sl.sendParticles(ParticleTypes.SMOKE, targetPos.getX(), targetPos.getY(), targetPos.getZ(), 1, 0.0, 0.05, 0.0, 0.01);
+                }
+                if (timer == 0) {
+                    // When timer expires, perform the explosion
+                    Level world = mob.level();
+                    world.explode(mob, targetPos.getX(), targetPos.getY(), targetPos.getZ(), 4.0F, Level.ExplosionInteraction.MOB);
+                    using = false; // Stop using this goal after the explosion
+                }
+            }
         }
 
         private void spawnInitialParticles(Level world, Vec3 position) {
@@ -63,22 +85,11 @@ public class ArmstrongGoals {
                 }
             }
         }
-
-        @Override
-        public void tick() {
-            if (mob.level() instanceof ServerLevel sl) {
-                sl.sendParticles(ParticleTypes.SMOKE, targetPos.getX(), targetPos.getY(), targetPos.getZ(), 1, 0.0, 0.05, 0.0, 0.01);
-            }
-            if (timer-- <= 0) {
-                Level world = mob.level();
-                world.explode(mob, targetPos.getX(), targetPos.getY(), targetPos.getZ(), 4.0F, Level.ExplosionInteraction.MOB);
-                using = false;
-            }
-        }
     }
 
     public static class LavaTrapGoal extends Goal {
         private final StevenArmstrong mob;
+        private int animationDelay;
 
         public LavaTrapGoal(StevenArmstrong mob) {
             this.mob = mob;
@@ -98,21 +109,28 @@ public class ArmstrongGoals {
 
         @Override
         public boolean canContinueToUse() {
-            return false;
+            return animationDelay >= 0;
         }
 
         @Override
         public void start() {
-            LivingEntity target = mob.getTarget();
-            if (target != null && mob.level() instanceof ServerLevel serverLevel) {
-                mob.playSound(ModSounds.ARMSTRONG_ANGRY.get(),3.0F, 1.0F);
-                BlockPos centerPos = target.blockPosition();  // The block directly on the target
+            animationDelay = 40;
+        }
 
-                BlockState flowingLava = Blocks.LAVA.defaultBlockState().setValue(LiquidBlock.LEVEL, 9); // Example level
-                serverLevel.setBlockAndUpdate(centerPos, flowingLava);
+        @Override
+        public void tick() {
+            if (animationDelay-- <= 0) {
+                LivingEntity target = mob.getTarget();
+                if (target != null && mob.level() instanceof ServerLevel serverLevel) {
+                    mob.playSound(ModSounds.ARMSTRONG_ANGRY.get(), 3.0F, 1.0F);
+                    BlockPos centerPos = target.blockPosition();  // The block directly on the target
 
-                // Spawn particles to visually indicate the lava placement
-                spawnParticles(serverLevel, mob.getEyePosition());
+                    BlockState flowingLava = Blocks.LAVA.defaultBlockState().setValue(LiquidBlock.LEVEL, 9); // Example level
+                    serverLevel.setBlockAndUpdate(centerPos, flowingLava);
+
+                    // Spawn particles to visually indicate the lava placement
+                    spawnParticles(serverLevel, mob.getEyePosition());
+                }
             }
         }
 
@@ -130,6 +148,7 @@ public class ArmstrongGoals {
 
     public static class SonicBoomGoal extends Goal {
         private final StevenArmstrong mob;
+        private int animationDelay;
 
         public SonicBoomGoal(StevenArmstrong mob) {
             this.mob = mob;
@@ -147,34 +166,41 @@ public class ArmstrongGoals {
 
         @Override
         public boolean canContinueToUse() {
-            return false;
+            return animationDelay >= 0;
         }
 
         @Override
         public void start() {
-            LivingEntity target = mob.getTarget();
-            if (mob.level() instanceof ServerLevel serverLevel && target != null) {
-                mob.playSound(ModSounds.ARMSTRONG_SONIC.get(), 3.0F, 1.0F);
-                Vec3 from = mob.position().add(0.0D, mob.getEyeHeight(), 0.0D);
-                Vec3 to = target.position();
-                Vec3 direction = to.subtract(from).normalize();
+            animationDelay = 40;
+        }
 
-                // Emit particles along the path
-                for (int i = 0; i < Mth.floor(from.distanceTo(to)) + 7; ++i) {
-                    Vec3 point = from.add(direction.scale(i));
-                    serverLevel.sendParticles(ParticleTypes.SONIC_BOOM, point.x, point.y, point.z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+        @Override
+        public void tick() {
+            if (animationDelay-- <= 0) {
+                LivingEntity target = mob.getTarget();
+                if (mob.level() instanceof ServerLevel serverLevel && target != null) {
+                    mob.playSound(ModSounds.ARMSTRONG_SONIC.get(), 3.0F, 1.0F);
+                    Vec3 from = mob.position().add(0.0D, mob.getEyeHeight(), 0.0D);
+                    Vec3 to = target.position();
+                    Vec3 direction = to.subtract(from).normalize();
+
+                    // Emit particles along the path
+                    for (int i = 0; i < Mth.floor(from.distanceTo(to)) + 7; ++i) {
+                        Vec3 point = from.add(direction.scale(i));
+                        serverLevel.sendParticles(ParticleTypes.SONIC_BOOM, point.x, point.y, point.z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+                    }
+
+                    float damage = 10.0F;
+                    target.hurt(serverLevel.damageSources().sonicBoom(mob), damage);
+                    target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 200, 0)); // Apply weakness for 10 seconds
+
+                    double attractionHorizontal = 2.5;
+                    double dx = -direction.x * attractionHorizontal * (1.0 - target.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE));
+                    double attractionVertical = 0.5;
+                    double dy = -direction.y * attractionVertical * (1.0 - target.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE));
+                    double dz = -direction.z * attractionHorizontal * (1.0 - target.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE));
+                    target.push(dx, dy, dz); // Pull the target towards the mob
                 }
-
-                float damage = 10.0F;
-                target.hurt(serverLevel.damageSources().sonicBoom(mob), damage);
-                target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, 200, 0)); // Apply weakness for 10 seconds
-
-                double attractionHorizontal = 2.5;
-                double dx = -direction.x * attractionHorizontal * (1.0 - target.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE));
-                double attractionVertical = 0.5;
-                double dy = -direction.y * attractionVertical * (1.0 - target.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE));
-                double dz = -direction.z * attractionHorizontal * (1.0 - target.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE));
-                target.push(dx, dy, dz); // Pull the target towards the mob
             }
         }
     }

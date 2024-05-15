@@ -57,6 +57,7 @@ public class ArmstrongModel<T extends StevenArmstrong> extends HierarchicalModel
         animateIdlePose(ageInTicks);
 
         animate(entity.attackAnimationState, ArmstrongAnimation.ARMSTRONG_ATTACK, ageInTicks);
+        animate(entity.sonicBoomAnimationState, ArmstrongAnimation.ARMSTRONG_SONIC_BOOM, ageInTicks);
     }
 
     private void animateIdlePose(float ageInTicks) {
