@@ -23,12 +23,12 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.behavior.warden.SonicBoom;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -37,6 +37,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.PathFinder;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.fluids.FluidType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,6 +60,8 @@ public class StevenArmstrong extends Monster {
 
     private int attackCooldown;
     private boolean jumped;
+    private boolean offGround;
+
     private Goal activeGoal;
     private final LookAtPlayerGoal lookAtPlayerGoal;
     private final MeleeAttackGoal meleeAttackGoal;
@@ -70,6 +73,8 @@ public class StevenArmstrong extends Monster {
             new ArmstrongGoals.SmokeExplosionGoal(this),
             new ArmstrongGoals.LavaTrapGoal(this));
 
+    public AnimationState attackAnimationState = new AnimationState();
+
     public StevenArmstrong(EntityType<? extends Monster> type, Level level) {
         super(type, level);
 
@@ -79,7 +84,7 @@ public class StevenArmstrong extends Monster {
         waterAvoidingRandomStrollGoal = new WaterAvoidingRandomStrollGoal(this, 1.0D);
         hurtByTargetGoal = new HurtByTargetGoal(this);
         nearestAttackableTargetGoal = new NearestAttackableTargetGoal<>(this, LivingEntity.class, 0,
-                false, false, e -> !(e instanceof StevenArmstrong));
+                false, false, e -> !(e instanceof StevenArmstrong || e instanceof Villager));
 
         // Initially, only the look at player goal is high priority
         this.goalSelector.addGoal(3, lookAtPlayerGoal);
@@ -105,6 +110,15 @@ public class StevenArmstrong extends Monster {
     }
 
     @Override
+    public void handleEntityEvent(byte eventCode) {
+        if (eventCode == 4) {
+            attackAnimationState.start(tickCount);
+        } else {
+            super.handleEntityEvent(eventCode);
+        }
+    }
+
+    @Override
     public void aiStep() {
         super.aiStep();
         // Check health percentage
@@ -126,6 +140,7 @@ public class StevenArmstrong extends Monster {
             hasTriggeredStartState = true;
             playSound(ModSounds.ARMSTRONG_EMERGE.get(), 10.0F, 1.0F);
             // If health drops below 90%, activate all goals
+            removeGoalIfActive(goalSelector, lookAtPlayerGoal);
             ensureGoalActive(goalSelector, meleeAttackGoal, 8);
             ensureGoalActive(goalSelector, randomLookAroundGoal, 8);
             ensureGoalActive(goalSelector, waterAvoidingRandomStrollGoal, 7);
@@ -184,8 +199,13 @@ public class StevenArmstrong extends Monster {
             }
         }
 
-        if (this.onGround() && jumped) {
+        if (jumped && !onGround()) {
+            offGround = true;
+        }
+
+        if (this.onGround() && offGround) {
             jumped = false; // Reset the jump flag
+            offGround = false;
             triggerGroundPound();
         }
     }
@@ -205,7 +225,7 @@ public class StevenArmstrong extends Monster {
 
             // Apply a knock-up effect and show particles
             for (LivingEntity entity : nearbyEntities) {
-                double upForce = 1.0;
+                double upForce = 1.5;
                 entity.setDeltaMovement(entity.getDeltaMovement().add(0, upForce, 0));
                 entity.hurtMarked = true;
             }
@@ -331,14 +351,18 @@ public class StevenArmstrong extends Monster {
 
     @Override
     public boolean doHurtTarget(@NotNull Entity target) {
-        this.level().broadcastEntityEvent(this, (byte) 4);
-        this.playSound(ModSounds.ARMSTRONG_ATTACK_IMPACT.get(), 10.0F, this.getVoicePitch());
-        SonicBoom.setCooldown(this, 40);
+        level().broadcastEntityEvent(this, (byte) 4);
+        playSound(ModSounds.ARMSTRONG_ATTACK_IMPACT.get(), 10.0F, getVoicePitch());
         return super.doHurtTarget(target);
     }
 
     @Override
     public boolean removeWhenFarAway(double d) {
+        return false;
+    }
+
+    @Override
+    public boolean isPushedByFluid(FluidType fluidType) {
         return false;
     }
 }
