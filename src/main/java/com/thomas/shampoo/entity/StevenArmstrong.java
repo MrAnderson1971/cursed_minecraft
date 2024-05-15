@@ -16,6 +16,7 @@ import net.minecraft.sounds.Music;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.BossEvent;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -55,8 +56,9 @@ public class StevenArmstrong extends Monster {
     private final ServerBossEvent bossEvent = (ServerBossEvent) (new ServerBossEvent(this.getDisplayName(), BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.PROGRESS)).setDarkenScreen(true);
     public static final Music ARMSTRONG_MUSIC = new Music(ModSounds.ARMSTRONG_MUSIC.getHolder().orElseThrow(), 100, 200, true);
 
-    private boolean hasTriggeredStartState = false;
-    private boolean hasTriggeredLowHealthState = false;
+    // FinalizeSpawnHandler.java
+    public boolean hasTriggeredStartState = false;
+    public boolean hasTriggeredLowHealthState = false;
 
     private int attackCooldown;
     private boolean jumped;
@@ -75,6 +77,7 @@ public class StevenArmstrong extends Monster {
 
     public AnimationState attackAnimationState = new AnimationState();
     public AnimationState sonicBoomAnimationState = new AnimationState();
+    public AnimationState roarAnimationState = new AnimationState();
 
     public StevenArmstrong(EntityType<? extends Monster> type, Level level) {
         super(type, level);
@@ -120,6 +123,11 @@ public class StevenArmstrong extends Monster {
                 attackAnimationState.stop();
                 sonicBoomAnimationState.start(tickCount);
                 break;
+            case 63:
+                attackAnimationState.stop();
+                sonicBoomAnimationState.stop();
+                roarAnimationState.start(tickCount);
+                break;
             default:
                 super.handleEntityEvent(eventCode);
         }
@@ -132,10 +140,6 @@ public class StevenArmstrong extends Monster {
         double healthPercent = this.getHealth() / this.getMaxHealth();
 
         if (healthPercent > 0.9) {
-            // If health is above 90%, reset the low health state trigger if it was set
-            if (hasTriggeredStartState) {
-                hasTriggeredStartState = false;
-            }
             // If health is above 90%, focus on looking at the player
             ensureGoalActive(goalSelector, lookAtPlayerGoal, 3);
             removeGoalIfActive(goalSelector, meleeAttackGoal);
@@ -160,10 +164,12 @@ public class StevenArmstrong extends Monster {
             if (!hasTriggeredLowHealthState) {
                 hasTriggeredLowHealthState = true;
                 playSound(ModSounds.ARMSTRONG_DIG.get(), 10.0F, 1.0F);
+                level().broadcastEntityEvent(this, (byte) 63);
             }
             // Apply Regeneration II and Resistance I if below 50% health
             this.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 40, 1, false, false, true));
             this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 40, 0, false, false, true));
+            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 40, 0, false, false, true));
         }
 
         // Decrement the jump cooldown if it's above 0
@@ -367,6 +373,13 @@ public class StevenArmstrong extends Monster {
     @Override
     public boolean removeWhenFarAway(double d) {
         return false;
+    }
+
+    @Override
+    public void checkDespawn() {
+        if (level().getDifficulty() == Difficulty.PEACEFUL && shouldDespawnInPeaceful()) {
+            discard(); // Despawn the entity if the difficulty is set to Peaceful.
+        }
     }
 
     @Override

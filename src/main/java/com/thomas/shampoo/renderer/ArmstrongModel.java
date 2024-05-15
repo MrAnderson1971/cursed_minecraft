@@ -36,6 +36,7 @@ public class ArmstrongModel<T extends StevenArmstrong> extends HierarchicalModel
         this.rightArm = this.body.getChild("right_arm");
         this.leftArm = this.body.getChild("left_arm");
     }
+
     public static LayerDefinition createBodyLayer() {
         MeshDefinition meshdefinition = new MeshDefinition();
         PartDefinition partdefinition = meshdefinition.getRoot();
@@ -58,6 +59,7 @@ public class ArmstrongModel<T extends StevenArmstrong> extends HierarchicalModel
 
         animate(entity.attackAnimationState, ArmstrongAnimation.ARMSTRONG_ATTACK, ageInTicks);
         animate(entity.sonicBoomAnimationState, ArmstrongAnimation.ARMSTRONG_SONIC_BOOM, ageInTicks);
+        animate(entity.roarAnimationState, ArmstrongAnimation.ARMSTRONG_ROAR, ageInTicks);
     }
 
     private void animateIdlePose(float ageInTicks) {
