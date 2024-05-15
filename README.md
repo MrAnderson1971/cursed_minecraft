@@ -9,10 +9,8 @@ For Minecraft version 1.20.2
 * Wuckets and Bater Wuckets
 * Naturally spawning McDonald's
 * Biden Blast and Obamahameha!
-![Screenshot](https://github.com/MrAnderson1971/cursed_minecraft/blob/master/screenshots/image0.png?raw=true)
-![Screenshot](https://github.com/MrAnderson1971/cursed_minecraft/blob/master/screenshots/image1.png?raw=true)
-![Screenshot](https://github.com/MrAnderson1971/cursed_minecraft/blob/master/screenshots/image2.png?raw=true)
-![Screenshot](https://github.com/MrAnderson1971/cursed_minecraft/blob/master/screenshots/image3.png?raw=true)
+* Mother of all bosses (build him like an iron golem, except with diamond blocks instead of iron)
+![Screenshot](https://github.com/MrAnderson1971/cursed_minecraft/blob/master/screenshots/image4.png?raw=true)
 ## Full list:
 * Thomas Ore block 
 * Smeltes Thomas item
@@ -25,3 +23,4 @@ For Minecraft version 1.20.2
 * McDonald's naturally generating structure
 * Biden mob
 * Laser status effect
+* Steven Armstrong boss
