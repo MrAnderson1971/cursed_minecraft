@@ -6,11 +6,10 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.network.CustomPayloadEvent;
 
-public class SStopArmstrongMusicPacket {
-    public SStopArmstrongMusicPacket() {
-    }
+public class SStartPlayingArmstrongMusicPacket {
+    public SStartPlayingArmstrongMusicPacket() {}
 
-    public SStopArmstrongMusicPacket(FriendlyByteBuf buf) {
+    public SStartPlayingArmstrongMusicPacket(FriendlyByteBuf buf) {
     }
 
     public void encode(FriendlyByteBuf buf) {
@@ -20,7 +19,9 @@ public class SStopArmstrongMusicPacket {
         context.enqueueWork(() -> {
             ServerPlayer player = context.getSender();
             if (player != null) {
-                Minecraft.getInstance().getMusicManager().stopPlaying(StevenArmstrong.ARMSTRONG_MUSIC);
+                if (!Minecraft.getInstance().getMusicManager().isPlayingMusic(StevenArmstrong.ARMSTRONG_MUSIC)) {
+                    Minecraft.getInstance().getMusicManager().startPlaying(StevenArmstrong.ARMSTRONG_MUSIC);
+                }
             }
         });
         context.setPacketHandled(true);

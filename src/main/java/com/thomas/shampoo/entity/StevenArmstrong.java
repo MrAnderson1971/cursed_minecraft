@@ -4,9 +4,9 @@ import com.thomas.shampoo.entity.ai.ArmstrongGoals;
 import com.thomas.shampoo.entity.ai.ArmstrongNodeEvaluator;
 import com.thomas.shampoo.entity.ai.ArmstrongPathNavigation;
 import com.thomas.shampoo.network.PacketHandler;
+import com.thomas.shampoo.network.SStartPlayingArmstrongMusicPacket;
 import com.thomas.shampoo.network.SStopArmstrongMusicPacket;
 import com.thomas.shampoo.world.ModSounds;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerBossEvent;
@@ -184,8 +184,8 @@ public class StevenArmstrong extends Monster {
         }
 
         // Play boss music if not playing already
-        if (!Minecraft.getInstance().getMusicManager().isPlayingMusic(ARMSTRONG_MUSIC) && isAlive()) {
-            Minecraft.getInstance().getMusicManager().startPlaying(ARMSTRONG_MUSIC);
+        if (isAlive() && level().isClientSide()) {
+            PacketHandler.sendToServer(new SStartPlayingArmstrongMusicPacket());
         }
 
         if (attackCooldown > 0) {
@@ -301,15 +301,15 @@ public class StevenArmstrong extends Monster {
     public void die(@NotNull DamageSource cause) {
         super.die(cause);
 
+        boolean anyAlive = false;
         if (!level().isClientSide) {  // Ensure this runs on the server side
             // Check if there are any other entities of this type still alive
-            boolean anyAlive = level().getEntitiesOfClass(StevenArmstrong.class, this.getBoundingBox().inflate(10000)).stream()
+            anyAlive = level().getEntitiesOfClass(StevenArmstrong.class, this.getBoundingBox().inflate(10000)).stream()
                     .anyMatch(e -> e.isAlive() && e != this);
-
-            if (!anyAlive) {
-                // Inform the client to stop the music, typically through a custom packet or event
-                PacketHandler.sendToServer(new SStopArmstrongMusicPacket());
-            }
+        }
+        if (level().isClientSide() && !anyAlive) {
+            // Inform the client to stop the music, typically through a custom packet or event
+            PacketHandler.sendToServer(new SStopArmstrongMusicPacket());
         }
     }
 

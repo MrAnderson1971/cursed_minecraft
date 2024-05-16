@@ -22,6 +22,11 @@ public class PacketHandler {
                 .decoder(SStopArmstrongMusicPacket::new)
                 .consumerNetworkThread(SStopArmstrongMusicPacket::handle)
                 .add();
+        INSTANCE.messageBuilder(SStartPlayingArmstrongMusicPacket.class, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(SStartPlayingArmstrongMusicPacket::encode)
+                .decoder(SStartPlayingArmstrongMusicPacket::new)
+                .consumerNetworkThread(SStartPlayingArmstrongMusicPacket::handle)
+                .add();
     }
 
     public static void sendToServer(Object msg) {
