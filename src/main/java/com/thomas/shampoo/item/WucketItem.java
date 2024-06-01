@@ -11,6 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Blocks;
+import org.jetbrains.annotations.NotNull;
 
 import static com.thomas.shampoo.item.ItemInit.BATER_WUCKET;
 
@@ -21,7 +22,7 @@ public class WucketItem extends Item {
 
     @Override
     // Replace with bater wucket on right click of iron block.
-    public InteractionResult useOn(UseOnContext context) {
+    public @NotNull InteractionResult useOn(UseOnContext context) {
         Level world = context.getLevel();
         if (!world.isClientSide) {
             BlockPos pos = context.getClickedPos();

@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.NotNull;
 
 import static com.thomas.shampoo.ShampooMod.MODID;
 
@@ -19,12 +20,12 @@ public class BidenRenderer extends LivingEntityRenderer<Biden, PlayerlikeModel<B
     }
 
     @Override
-    public ResourceLocation getTextureLocation(Biden entity) {
+    public @NotNull ResourceLocation getTextureLocation(@NotNull Biden entity) {
         return BIDEN_TEXTURE;  // Assigning Biden specific texture.
     }
 
     @Override
-    protected void renderNameTag(Biden entity, Component displayName, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+    protected void renderNameTag(@NotNull Biden entity, @NotNull Component displayName, @NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, int packedLight) {
         // Do nothing, this will prevent the name tag from rendering
     }
 }

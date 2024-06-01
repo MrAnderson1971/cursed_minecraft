@@ -1,26 +1,19 @@
 package com.thomas.shampoo.event;
 
 import com.thomas.shampoo.ShampooMod;
-import com.thomas.shampoo.item.ItemInit;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.animal.Cat;
 import net.minecraft.world.entity.animal.CatVariant;
-import net.minecraft.world.entity.monster.Shulker;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ChestMenu;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.entity.vehicle.Minecart;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.Cat;
-import net.minecraft.world.entity.vehicle.Minecart;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.InteractionResult;
 
 @Mod.EventBusSubscriber(modid = ShampooMod.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class EntityInteractionHandler {

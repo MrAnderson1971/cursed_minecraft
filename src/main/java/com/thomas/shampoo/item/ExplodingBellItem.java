@@ -9,6 +9,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.BlockPos;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -20,7 +21,7 @@ public class ExplodingBellItem extends Item {
 
     // Trigger an explosion when the item is added to the player's inventory
     @Override
-    public void inventoryTick(ItemStack stack, Level world, Entity entity, int itemSlot, boolean isSelected) {
+    public void inventoryTick(@NotNull ItemStack stack, Level world, @NotNull Entity entity, int itemSlot, boolean isSelected) {
         if (!world.isClientSide && entity instanceof Player player) {
             // Check if the player is in Creative mode
             if (!player.isCreative()) {
@@ -36,7 +37,7 @@ public class ExplodingBellItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level world, @NotNull List<Component> tooltip, @NotNull TooltipFlag flag) {
         super.appendHoverText(stack, world, tooltip, flag);
         // Adding custom lore, now in italic and red
         tooltip.add(Component.literal("Last chance to look at me, Hector.")
