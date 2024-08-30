@@ -1,6 +1,6 @@
-# [Download here](https://github.com/MrAnderson1971/cursed_minecraft/raw/master/Thomas%20&%20Friends%203%20in%201%20Shampoo,%20Hair,%20and%20Body%20Wash.jar)
-
-For Minecraft version 1.20.2
+# Download
+Check the Releases tab on the right.
+For Minecraft version 1.20.2, Forge mod loader
 ## Features
 * Thomas and Friends 3 in 1 Shampoo, Hair, and Body Wash (gives you [superpowers](https://www.youtube.com/watch?v=P7I6rmtHB60)!)
 * Jade Pyramid
