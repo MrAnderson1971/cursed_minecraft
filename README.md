@@ -24,3 +24,10 @@ For Minecraft version 1.20.2, Forge mod loader
 * Biden mob
 * Laser status effect
 * Steven Armstrong boss
+
+## Build
+Run 
+```bash
+./gradlew build
+```
+Requires Java 17

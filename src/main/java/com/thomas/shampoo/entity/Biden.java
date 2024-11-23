@@ -14,13 +14,18 @@ import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.Phantom;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
 public class Biden extends Monster implements Unlaserable, RangedAttackMob {
     private static final double BASE_SPEED = 0.6;
+    private static final int SUMMON_INTERVAL = 200; // Time in ticks (10 seconds at 20 ticks per second)
+
+    private int summonCooldown = 0; // Tracks cooldown time for summoning phantoms
 
     public Biden(EntityType<? extends Monster> type, Level worldIn) {
         super(type, worldIn);
@@ -36,7 +41,7 @@ public class Biden extends Monster implements Unlaserable, RangedAttackMob {
     }
 
     private static boolean selection(Entity e) {
-        return !(e instanceof Unlaserable) && (e instanceof Enemy || e instanceof Player);
+        return !(e instanceof Unlaserable || e instanceof Phantom) && (e instanceof Enemy || e instanceof Player);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -46,7 +51,7 @@ public class Biden extends Monster implements Unlaserable, RangedAttackMob {
     }
 
     @Override
-    public float getStandingEyeHeight(@NotNull Pose p_21131_, @NotNull EntityDimensions p_21132_){
+    public float getStandingEyeHeight(@NotNull Pose p_21131_, @NotNull EntityDimensions p_21132_) {
         return 1.8F;
     }
 
@@ -57,6 +62,40 @@ public class Biden extends Monster implements Unlaserable, RangedAttackMob {
             DifficultyInstance difficulty = level.getCurrentDifficultyAt(this.blockPosition());
             int amplifier = Math.max(0, level.getDifficulty().getId() - 1); // Easy = 0, Normal = 1, Hard = 2
             this.addEffect(new MobEffectInstance(EffectInit.LASER.get(), 40, amplifier, false, false));
+        }
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+
+        if (!level().isClientSide) {
+            // Increment cooldown
+            summonCooldown++;
+
+            // Check if it's time to summon phantoms
+            if (summonCooldown >= SUMMON_INTERVAL) {
+                summonCooldown = random.nextInt(SUMMON_INTERVAL / 2); // Reset cooldown
+
+                // Summon 1-3 phantoms randomly
+                int phantomCount = 1 + random.nextInt(3);
+                for (int i = 0; i < phantomCount; i++) {
+                    summonPhantom();
+                }
+            }
+        }
+    }
+
+    private void summonPhantom() {
+        // Create a new Phantom entity
+        Phantom phantom = EntityType.PHANTOM.create(level());
+        if (phantom != null) {
+            // Position the phantom near Biden
+            Vec3 spawnPosition = this.position().add(random.nextGaussian() * 2, 1, random.nextGaussian() * 2);
+            phantom.moveTo(spawnPosition.x, spawnPosition.y, spawnPosition.z, random.nextFloat() * 360, 0);
+
+            // Spawn the phantom in the world
+            level().addFreshEntity(phantom);
         }
     }
 }
