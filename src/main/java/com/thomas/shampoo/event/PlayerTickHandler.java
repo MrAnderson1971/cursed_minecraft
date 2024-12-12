@@ -23,12 +23,13 @@ public class PlayerTickHandler {
         }
 
         Player player = event.player;
+        if (player.isSpectator() || player.isCreative()) {
+            return;
+        }
         MobEffectInstance flyingEffect = player.getEffect(EffectInit.FLYING.get());
-        boolean modeAllowsFlight = player.isSpectator() || player.isCreative();
-        boolean customEffectAllowsFlight = flyingEffect != null;
 
         // Handle enabling/disabling flight
-        boolean canFly = modeAllowsFlight || customEffectAllowsFlight;
+        boolean canFly = flyingEffect != null;
         player.getAbilities().mayfly = canFly;
 
         if (!player.getAbilities().flying && canFly && !player.onGround()) {
