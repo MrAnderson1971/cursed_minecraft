@@ -55,6 +55,9 @@ public class ArmstrongGoals {
             if (animationDelay > 0) {
                 animationDelay--;
                 if (animationDelay == 0) {
+                    if (mob.getTarget() == null) {
+                        return;
+                    }
                     // Now start the explosion timer
                     timer = 20; // Set the timer for the explosion countdown
                     mob.playSound(ModSounds.ARMSTRONG_AGITATED.get(), 3.0F, 1.0F);
