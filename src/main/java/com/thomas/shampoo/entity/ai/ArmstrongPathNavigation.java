@@ -10,6 +10,7 @@ import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import org.jetbrains.annotations.NotNull;
 
 public class ArmstrongPathNavigation extends GroundPathNavigation {
 
@@ -19,6 +20,9 @@ public class ArmstrongPathNavigation extends GroundPathNavigation {
 
     @Override
     protected void followThePath() {
+        if (this.path == null) {
+            return;
+        }
         int pathIndex = this.path.getNextNodeIndex();
 
         // Check only the next segment of the path or a few blocks ahead rather than the entire path segment ahead.
@@ -31,6 +35,9 @@ public class ArmstrongPathNavigation extends GroundPathNavigation {
     }
 
     private void debugWool() {
+        if (this.path == null) {
+            return;
+        }
         for (int i = path.getNextNodeIndex(); i < path.getNodeCount(); i++) {
             BlockPos nextNodePos;
             try {
@@ -45,6 +52,9 @@ public class ArmstrongPathNavigation extends GroundPathNavigation {
     }
 
     private void checkAndDestroyBlocks(int checkAheadRange) {
+        if (path == null) {
+            return;
+        }
         int width = Mth.ceil(this.mob.getBbWidth());
         int height = Mth.ceil(this.mob.getBbHeight());
 
@@ -78,7 +88,7 @@ public class ArmstrongPathNavigation extends GroundPathNavigation {
     }
 
     @Override
-    protected boolean hasValidPathType(BlockPathTypes pathTypes) {
+    protected boolean hasValidPathType(@NotNull BlockPathTypes pathTypes) {
         return pathTypes != BlockPathTypes.OPEN;
     }
 }

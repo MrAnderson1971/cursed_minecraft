@@ -2,7 +2,6 @@ package com.thomas.shampoo.entity;
 
 import com.thomas.shampoo.effect.EffectInit;
 import com.thomas.shampoo.entity.ai.LaserAttackGoal;
-import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -59,7 +58,6 @@ public class Biden extends Monster implements Unlaserable, RangedAttackMob {
     public void performRangedAttack(@NotNull LivingEntity p_33317_, float p_33318_) {
         Level level = getCommandSenderWorld();
         if (!level.isClientSide) {
-            DifficultyInstance difficulty = level.getCurrentDifficultyAt(this.blockPosition());
             int amplifier = Math.max(0, level.getDifficulty().getId() - 1); // Easy = 0, Normal = 1, Hard = 2
             this.addEffect(new MobEffectInstance(EffectInit.LASER.get(), 40, amplifier, false, false));
         }

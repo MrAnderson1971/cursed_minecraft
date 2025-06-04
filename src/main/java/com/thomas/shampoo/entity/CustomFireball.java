@@ -2,15 +2,17 @@ package com.thomas.shampoo.entity;
 
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LightningBolt;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.Fireball;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
+import org.jetbrains.annotations.NotNull;
 
 public class CustomFireball extends Fireball {
-    private static final int explosionPower = 1;
-
     public CustomFireball(EntityType<CustomFireball> type, Level level) {
         super(type, level);
     }
@@ -40,7 +42,7 @@ public class CustomFireball extends Fireball {
     }
 
     protected void onHit(HitResult hit) {
-        if (hit.getType() == HitResult.Type.ENTITY && ((EntityHitResult)hit).getEntity() instanceof Unfireballable) {
+        if (hit.getType() == HitResult.Type.ENTITY && ((EntityHitResult) hit).getEntity() instanceof Unfireballable) {
             // If the hit entity is Unfireballable, do not discard the fireball
             return;
         }
@@ -54,7 +56,7 @@ public class CustomFireball extends Fireball {
         return false;
     }
 
-    public boolean hurt(DamageSource p_37381_, float p_37382_) {
+    public boolean hurt(@NotNull DamageSource p_37381_, float p_37382_) {
         return false;
     }
 }
