@@ -23,9 +23,12 @@ public class BlockInit {
 
     public static final RegistryObject<Block> JADE_ORE = BLOCKS.register("jade_ore",
             () -> new DropExperienceBlock(
-                    BlockBehaviour.Properties.copy(Blocks.DIAMOND_ORE),  UniformInt.of(4, 7)
+                    BlockBehaviour.Properties.copy(Blocks.DIAMOND_ORE), UniformInt.of(4, 7)
             ));
 
     public static final RegistryObject<Block> JADE_PYRAMID = BLOCKS.register("jade_pyramid",
             () -> new JadePyramidBlock(BlockBehaviour.Properties.copy(Blocks.STONE).isRedstoneConductor((BlockState p_50806_, BlockGetter p_50807_, BlockPos p_50808_) -> false)));
+
+    public static final RegistryObject<Block> DEEP_SUBSTRATE_FOLIATED_KALKITE = BLOCKS.register("deep_substrate_foliated_kalkite",
+            () -> new Block(BlockBehaviour.Properties.copy(Blocks.DIAMOND_ORE)));
 }

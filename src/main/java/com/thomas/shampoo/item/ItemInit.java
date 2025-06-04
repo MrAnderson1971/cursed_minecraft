@@ -33,6 +33,9 @@ public class ItemInit {
     public static final RegistryObject<Item> JADE = ITEMS.register("jade",
             () -> new Item(new Item.Properties()));
 
+    public static final RegistryObject<Item> DEEP_SUBSTRATE_FOLIATED_KALKITE_ITEM = ITEMS.register("deep_substrate_foliated_kalkite",
+            () -> new BlockItem(BlockInit.DEEP_SUBSTRATE_FOLIATED_KALKITE.get(), new Item.Properties()));
+
     // Smelted Thomas
     public static final RegistryObject<Item> SMELTED_THOMAS = ITEMS.register("smelted_thomas",
             () -> new Item(new Item.Properties()));
@@ -62,9 +65,9 @@ public class ItemInit {
             () -> new Item(new Item.Properties()
                     .stacksTo(16)
                     .food(new FoodProperties.Builder()
-                    .alwaysEat()
-                    .effect(() -> new MobEffectInstance(EffectInit.LASER.get(), 200, 0), 1)
-                    .build())
+                            .alwaysEat()
+                            .effect(() -> new MobEffectInstance(EffectInit.LASER.get(), 200, 0), 1)
+                            .build())
             ));
 
     // Water
@@ -91,6 +94,7 @@ public class ItemInit {
             addItemToTab(event, THOMAS_ORE_ITEM);
             addItemToTab(event, JADE_PYRAMID_ITEM);
             addItemToTab(event, JADE_ORE_ITEM);
+            addItemToTab(event, DEEP_SUBSTRATE_FOLIATED_KALKITE_ITEM);
         } else if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
             addItemToTab(event, SMELTED_THOMAS);
             addItemToTab(event, JADE);
