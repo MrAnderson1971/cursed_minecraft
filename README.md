@@ -10,6 +10,7 @@ For Minecraft version 1.20.2, Forge mod loader
 * Naturally spawning McDonald's
 * Biden Blast and Obamahameha!
 * Mother of all bosses (build him like an iron golem, except with diamond blocks instead of iron)
+* Deep Substrate Foliated Kalkite
 ![Screenshot](https://github.com/MrAnderson1971/cursed_minecraft/blob/master/screenshots/image4.png?raw=true)
 ## Full list:
 * Thomas Ore block 
