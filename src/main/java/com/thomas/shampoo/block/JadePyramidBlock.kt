@@ -1,32 +1,32 @@
-package com.thomas.shampoo.block;
+package com.thomas.shampoo.block
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.core.BlockPos
+import net.minecraft.world.level.BlockGetter
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.phys.shapes.CollisionContext
+import net.minecraft.world.phys.shapes.Shapes
+import net.minecraft.world.phys.shapes.VoxelShape
 
-public class JadePyramidBlock extends Block {
+class JadePyramidBlock(properties: Properties) : Block(properties) {
+  @Deprecated("Deprecated in Java")
+  override fun getShape(
+      state: BlockState,
+      world: BlockGetter,
+      pos: BlockPos,
+      context: CollisionContext,
+  ): VoxelShape {
+    return PYRAMID_SHAPE
+  }
 
+  companion object {
     // Define the voxel shapes for each tier of the pyramid.
-    private static final VoxelShape BASE = Block.box(0, 0, 0, 16, 4, 16);
-    private static final VoxelShape MIDDLE = Block.box(2, 4, 2, 14, 8, 14);
-    private static final VoxelShape TOP = Block.box(4, 8, 4, 12, 12, 12);
-    private static final VoxelShape APEX = Block.box(6, 12, 6, 10, 16, 10);
+    private val BASE = box(0.0, 0.0, 0.0, 16.0, 4.0, 16.0)
+    private val MIDDLE = box(2.0, 4.0, 2.0, 14.0, 8.0, 14.0)
+    private val TOP = box(4.0, 8.0, 4.0, 12.0, 12.0, 12.0)
+    private val APEX = box(6.0, 12.0, 6.0, 10.0, 16.0, 10.0)
 
     // Combine the tiers to create the full pyramid shape.
-    private static final VoxelShape PYRAMID_SHAPE = Shapes.or(BASE, MIDDLE, TOP, APEX);
-
-    public JadePyramidBlock(BlockBehaviour.Properties properties) {
-        super(properties);
-    }
-
-    @Override
-    public @NotNull VoxelShape getShape(@NotNull BlockState state, @NotNull BlockGetter world, @NotNull BlockPos pos, @NotNull CollisionContext context) {
-        return PYRAMID_SHAPE;
-    }
+    private val PYRAMID_SHAPE = Shapes.or(BASE, MIDDLE, TOP, APEX)
+  }
 }

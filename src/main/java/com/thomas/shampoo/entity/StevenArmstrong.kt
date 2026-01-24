@@ -1,389 +1,407 @@
-package com.thomas.shampoo.entity;
+package com.thomas.shampoo.entity
 
-import com.thomas.shampoo.entity.ai.ArmstrongGoals;
-import com.thomas.shampoo.entity.ai.ArmstrongNodeEvaluator;
-import com.thomas.shampoo.entity.ai.ArmstrongPathNavigation;
-import com.thomas.shampoo.network.PacketHandler;
-import com.thomas.shampoo.network.SStartPlayingArmstrongMusicPacket;
-import com.thomas.shampoo.network.SStopArmstrongMusicPacket;
-import com.thomas.shampoo.world.ModSounds;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.server.level.ServerBossEvent;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.Music;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.BossEvent;
-import net.minecraft.world.Difficulty;
-import net.minecraft.world.DifficultyInstance;
-import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.*;
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
-import net.minecraft.world.entity.ai.navigation.PathNavigation;
-import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.world.entity.npc.Villager;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.pathfinder.PathFinder;
-import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.fluids.FluidType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import com.thomas.shampoo.entity.ai.*
+import com.thomas.shampoo.network.PacketHandler.sendToServer
+import com.thomas.shampoo.network.SStartPlayingArmstrongMusicPacket
+import com.thomas.shampoo.network.SStopArmstrongMusicPacket
+import com.thomas.shampoo.world.ModSounds
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.sin
+import net.minecraft.core.BlockPos
+import net.minecraft.core.particles.ParticleTypes
+import net.minecraft.server.level.ServerBossEvent
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.server.level.ServerPlayer
+import net.minecraft.sounds.Music
+import net.minecraft.sounds.SoundEvent
+import net.minecraft.util.RandomSource
+import net.minecraft.world.BossEvent
+import net.minecraft.world.Difficulty
+import net.minecraft.world.DifficultyInstance
+import net.minecraft.world.damagesource.DamageSource
+import net.minecraft.world.effect.MobEffectInstance
+import net.minecraft.world.effect.MobEffects
+import net.minecraft.world.entity.*
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier
+import net.minecraft.world.entity.ai.attributes.Attributes
+import net.minecraft.world.entity.ai.goal.*
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal
+import net.minecraft.world.entity.ai.navigation.PathNavigation
+import net.minecraft.world.entity.monster.Monster
+import net.minecraft.world.entity.npc.Villager
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.Items
+import net.minecraft.world.item.enchantment.Enchantments
+import net.minecraft.world.level.Level
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.pathfinder.PathFinder
+import net.minecraft.world.phys.Vec3
+import net.minecraftforge.fluids.FluidType
 
-import java.util.List;
+class StevenArmstrong(type: EntityType<out Monster>, level: Level) : Monster(type, level) {
+  private var jumpCooldown = 0.0
+  private val bossEvent =
+      (ServerBossEvent(
+              this.displayName,
+              BossEvent.BossBarColor.PURPLE,
+              BossEvent.BossBarOverlay.PROGRESS,
+          ))
+          .setDarkenScreen(true) as ServerBossEvent
+  // FinalizeSpawnHandler.java
+  var hasTriggeredStartState: Boolean = false
+  var hasTriggeredLowHealthState: Boolean = false
 
-public class StevenArmstrong extends Monster {
+  private var attackCooldown = 0
+  private var jumped = false
+  private var offGround = false
 
-    private static final float SIGHT_RANGE = 50.0F; // Increased sight range
-    private static final float BASE_SPEED = 0.5F;
-    private static final float MAX_HEALTH = 500;
-    public static final float ATTACK_DAMAGE = 15.0F;
-    private static final int MAX_COOLDOWN = 200;  // Cooldown time in ticks
+  private var activeGoal: Goal? = null
+  private val lookAtPlayerGoal = LookAtPlayerGoal(this, Player::class.java, 8.0f)
+  private val meleeAttackGoal = MeleeAttackGoal(this, 1.0, true)
+  private val randomLookAroundGoal = RandomLookAroundGoal(this)
+  private val waterAvoidingRandomStrollGoal = WaterAvoidingRandomStrollGoal(this, 1.0)
+  private val hurtByTargetGoal = HurtByTargetGoal(this)
+  private val nearestAttackableTargetGoal =
+      NearestAttackableTargetGoal(
+          this,
+          LivingEntity::class.java,
+          0,
+          false,
+          false,
+      ) { e ->
+        !(e is StevenArmstrong || e is Villager)
+      }
+  private val armstrongGoals =
+      listOf(SonicBoomGoal(this), SmokeExplosionGoal(this), LavaTrapGoal(this))
 
-    private double jumpCooldown;
-    private final ServerBossEvent bossEvent = (ServerBossEvent) (new ServerBossEvent(this.getDisplayName(), BossEvent.BossBarColor.PURPLE, BossEvent.BossBarOverlay.PROGRESS)).setDarkenScreen(true);
-    public static final Music ARMSTRONG_MUSIC = new Music(ModSounds.ARMSTRONG_MUSIC.getHolder().orElseThrow(), 100, 200, true);
+  var attackAnimationState: AnimationState = AnimationState()
+  var sonicBoomAnimationState: AnimationState = AnimationState()
+  var roarAnimationState: AnimationState = AnimationState()
 
-    // FinalizeSpawnHandler.java
-    public boolean hasTriggeredStartState = false;
-    public boolean hasTriggeredLowHealthState = false;
+  init {
 
-    private int attackCooldown;
-    private boolean jumped;
-    private boolean offGround;
+    // Initially, only the look at player goal is high priority
+    this.goalSelector.addGoal(3, lookAtPlayerGoal)
+  }
 
-    private Goal activeGoal;
-    private final LookAtPlayerGoal lookAtPlayerGoal;
-    private final MeleeAttackGoal meleeAttackGoal;
-    private final RandomLookAroundGoal randomLookAroundGoal;
-    private final WaterAvoidingRandomStrollGoal waterAvoidingRandomStrollGoal;
-    private final HurtByTargetGoal hurtByTargetGoal;
-    private final NearestAttackableTargetGoal<LivingEntity> nearestAttackableTargetGoal;
-    private final List<Goal> armstrongGoals = List.of(new ArmstrongGoals.SonicBoomGoal(this),
-            new ArmstrongGoals.SmokeExplosionGoal(this),
-            new ArmstrongGoals.LavaTrapGoal(this));
+  override fun createNavigation(level: Level): PathNavigation {
+    return object : ArmstrongPathNavigation(this, level) {
+      override fun createPathFinder(range: Int): PathFinder {
+        nodeEvaluator = ArmstrongNodeEvaluator()
+        return PathFinder(this.nodeEvaluator, range)
+      }
+    }
+  }
 
-    public AnimationState attackAnimationState = new AnimationState();
-    public AnimationState sonicBoomAnimationState = new AnimationState();
-    public AnimationState roarAnimationState = new AnimationState();
+  override fun handleEntityEvent(eventCode: Byte) {
+    when (eventCode.toInt()) {
+      4 -> attackAnimationState.start(tickCount)
+      62 -> {
+        attackAnimationState.stop()
+        sonicBoomAnimationState.start(tickCount)
+      }
+      63 -> {
+        attackAnimationState.stop()
+        sonicBoomAnimationState.stop()
+        roarAnimationState.start(tickCount)
+      }
+      else -> super.handleEntityEvent(eventCode)
+    }
+  }
 
-    public StevenArmstrong(EntityType<? extends Monster> type, Level level) {
-        super(type, level);
+  override fun aiStep() {
+    super.aiStep()
+    // Check health percentage
+    val healthPercent = (this.health / this.maxHealth).toDouble()
 
-        lookAtPlayerGoal = new LookAtPlayerGoal(this, Player.class, 8.0F);
-        meleeAttackGoal = new MeleeAttackGoal(this, 1.0D, true);
-        randomLookAroundGoal = new RandomLookAroundGoal(this);
-        waterAvoidingRandomStrollGoal = new WaterAvoidingRandomStrollGoal(this, 1.0D);
-        hurtByTargetGoal = new HurtByTargetGoal(this);
-        nearestAttackableTargetGoal = new NearestAttackableTargetGoal<>(this, LivingEntity.class, 0,
-                false, false, e -> !(e instanceof StevenArmstrong || e instanceof Villager));
-
-        // Initially, only the look at player goal is high priority
-        this.goalSelector.addGoal(3, lookAtPlayerGoal);
+    if (healthPercent > 0.9) {
+      // If health is above 90%, focus on looking at the player
+      ensureGoalActive(goalSelector, lookAtPlayerGoal, 3)
+      removeGoalIfActive(goalSelector, meleeAttackGoal)
+      removeGoalIfActive(goalSelector, randomLookAroundGoal)
+      removeGoalIfActive(goalSelector, waterAvoidingRandomStrollGoal)
+      removeGoalIfActive(targetSelector, hurtByTargetGoal)
+      removeGoalIfActive(targetSelector, nearestAttackableTargetGoal)
+    } else if (!hasTriggeredStartState) {
+      hasTriggeredStartState = true
+      playSound(ModSounds.ARMSTRONG_EMERGE.get(), 10.0f, 1.0f)
+      // If health drops below 90%, activate all goals
+      removeGoalIfActive(goalSelector, lookAtPlayerGoal)
+      ensureGoalActive(goalSelector, meleeAttackGoal, 8)
+      ensureGoalActive(goalSelector, randomLookAroundGoal, 8)
+      ensureGoalActive(goalSelector, waterAvoidingRandomStrollGoal, 7)
+      ensureGoalActive(goalSelector, lookAtPlayerGoal, 8)
+      ensureGoalActive(targetSelector, hurtByTargetGoal, 3)
+      ensureGoalActive(targetSelector, nearestAttackableTargetGoal, 2)
     }
 
-    public static AttributeSupplier.Builder createAttributes() {
-        return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, MAX_HEALTH)
-                .add(Attributes.MOVEMENT_SPEED, BASE_SPEED)
-                .add(Attributes.FOLLOW_RANGE, SIGHT_RANGE)
-                .add(Attributes.KNOCKBACK_RESISTANCE, 1.0D)
-                .add(Attributes.ATTACK_DAMAGE, ATTACK_DAMAGE);
+    if (healthPercent < 0.5) {
+      if (!hasTriggeredLowHealthState) {
+        hasTriggeredLowHealthState = true
+        playSound(ModSounds.ARMSTRONG_DIG.get(), 10.0f, 1.0f)
+        level().broadcastEntityEvent(this, 63.toByte())
+      }
+      // Apply Regeneration II and Resistance I if below 50% health
+      this.addEffect(MobEffectInstance(MobEffects.REGENERATION, 40, 1, false, false, true))
+      this.addEffect(MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 40, 0, false, false, true))
+      this.addEffect(MobEffectInstance(MobEffects.DAMAGE_BOOST, 40, 0, false, false, true))
     }
 
-    @Override
-    protected @NotNull PathNavigation createNavigation(@NotNull Level level) {
-        return new ArmstrongPathNavigation(this, level) {
-            @Override
-            protected @NotNull PathFinder createPathFinder(int range) {
-                nodeEvaluator = new ArmstrongNodeEvaluator();
-                return new PathFinder(this.nodeEvaluator, range);
-            }
-        };
+    // Decrement the jump cooldown if it's above 0
+    if (this.jumpCooldown > 0) {
+      this.jumpCooldown--
     }
 
-    @Override
-    public void handleEntityEvent(byte eventCode) {
-        switch (eventCode) {
-            case 4:
-                attackAnimationState.start(tickCount);
-                break;
-            case 62:
-                attackAnimationState.stop();
-                sonicBoomAnimationState.start(tickCount);
-                break;
-            case 63:
-                attackAnimationState.stop();
-                sonicBoomAnimationState.stop();
-                roarAnimationState.start(tickCount);
-                break;
-            default:
-                super.handleEntityEvent(eventCode);
-        }
+    val target = this.target
+    if (
+        target != null && this.onGround() && this.jumpCooldown == 0.0 && shouldJumpToTarget(target)
+    ) {
+      this.jumpTowardsTarget(target) // Jump towards the target
+      this.jumpCooldown = 100.0 // Reset cooldown
     }
 
-    @Override
-    public void aiStep() {
-        super.aiStep();
-        // Check health percentage
-        double healthPercent = this.getHealth() / this.getMaxHealth();
-
-        if (healthPercent > 0.9) {
-            // If health is above 90%, focus on looking at the player
-            ensureGoalActive(goalSelector, lookAtPlayerGoal, 3);
-            removeGoalIfActive(goalSelector, meleeAttackGoal);
-            removeGoalIfActive(goalSelector, randomLookAroundGoal);
-            removeGoalIfActive(goalSelector, waterAvoidingRandomStrollGoal);
-            removeGoalIfActive(targetSelector, hurtByTargetGoal);
-            removeGoalIfActive(targetSelector, nearestAttackableTargetGoal);
-        } else if (!hasTriggeredStartState) {
-            hasTriggeredStartState = true;
-            playSound(ModSounds.ARMSTRONG_EMERGE.get(), 10.0F, 1.0F);
-            // If health drops below 90%, activate all goals
-            removeGoalIfActive(goalSelector, lookAtPlayerGoal);
-            ensureGoalActive(goalSelector, meleeAttackGoal, 8);
-            ensureGoalActive(goalSelector, randomLookAroundGoal, 8);
-            ensureGoalActive(goalSelector, waterAvoidingRandomStrollGoal, 7);
-            ensureGoalActive(goalSelector, lookAtPlayerGoal, 8);
-            ensureGoalActive(targetSelector, hurtByTargetGoal, 3);
-            ensureGoalActive(targetSelector, nearestAttackableTargetGoal, 2);
-        }
-
-        if (healthPercent < 0.5) {
-            if (!hasTriggeredLowHealthState) {
-                hasTriggeredLowHealthState = true;
-                playSound(ModSounds.ARMSTRONG_DIG.get(), 10.0F, 1.0F);
-                level().broadcastEntityEvent(this, (byte) 63);
-            }
-            // Apply Regeneration II and Resistance I if below 50% health
-            this.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 40, 1, false, false, true));
-            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 40, 0, false, false, true));
-            this.addEffect(new MobEffectInstance(MobEffects.DAMAGE_BOOST, 40, 0, false, false, true));
-        }
-
-        // Decrement the jump cooldown if it's above 0
-        if (this.jumpCooldown > 0) {
-            this.jumpCooldown--;
-        }
-
-        LivingEntity target = this.getTarget();
-        if (target != null && this.onGround() && this.jumpCooldown == 0 && shouldJumpToTarget(target)) {
-            this.jumpTowardsTarget(target);  // Jump towards the target
-            this.jumpCooldown = 100;  // Reset cooldown
-        }
-
-        // Play boss music if not playing already
-        if (isAlive() && level().isClientSide()) {
-            PacketHandler.sendToServer(new SStartPlayingArmstrongMusicPacket());
-        }
-
-        if (attackCooldown > 0) {
-            attackCooldown--;
-        }
-
-        if (attackCooldown <= 0 && this.getTarget() != null && activeGoal == null) {
-            int choice = random.nextInt(armstrongGoals.size());
-            Goal candidateGoal = armstrongGoals.get(choice);
-
-            if (candidateGoal.canUse()) {
-                activeGoal = candidateGoal;
-                activeGoal.start();
-                attackCooldown = MAX_COOLDOWN;  // Reset cooldown
-                level().broadcastEntityEvent(this, (byte) 62);
-            }
-        }
-
-        if (activeGoal != null) {
-            if (activeGoal.canContinueToUse()) {
-                activeGoal.tick();
-            } else {
-                activeGoal.stop();
-                activeGoal = null;  // Reset the active goal after stopping
-            }
-        }
-
-        if (jumped && !onGround()) {
-            offGround = true;
-        }
-
-        if (this.onGround() && offGround) {
-            jumped = false; // Reset the jump flag
-            offGround = false;
-            triggerGroundPound();
-        }
+    // Play boss music if not playing already
+    if (isAlive && level().isClientSide()) {
+      sendToServer(SStartPlayingArmstrongMusicPacket())
     }
 
-    private void triggerGroundPound() {
-        if (this.getHealth() <= this.getMaxHealth() * 0.5) {
-            // Radius within which the effect is applied
-            double radius = 5.0;
-            List<LivingEntity> nearbyEntities = this.level().getEntitiesOfClass(LivingEntity.class, this.getBoundingBox().inflate(radius), e -> e != this && e.isAlive());
-            double radiusSquared = radius * radius;  // Calculate square of radius to use in comparison
-
-            // Filter entities to include only those within the spherical distance
-            nearbyEntities = nearbyEntities.stream()
-                    .filter(e -> e.position().distanceToSqr(this.position()) <= radiusSquared
-                            && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(e))
-                    .toList();
-
-            // Apply a knock-up effect and show particles
-            for (LivingEntity entity : nearbyEntities) {
-                double upForce = 1.5;
-                entity.setDeltaMovement(entity.getDeltaMovement().add(0, upForce, 0));
-                entity.hurtMarked = true;
-            }
-
-            // Display particles in a circle around the mob
-            displaySweepParticles();
-        }
+    if (attackCooldown > 0) {
+      attackCooldown--
     }
 
-    private void displaySweepParticles() {
-        double radius = 5.0;
-        if (level() instanceof ServerLevel sl) {
-            for (int i = 0; i < 360; i += 10) {
-                double rad = Math.toRadians(i);
-                double x = this.getX() + radius * Math.cos(rad);
-                double z = this.getZ() + radius * Math.sin(rad);
-                sl.sendParticles(ParticleTypes.SWEEP_ATTACK, x, this.getY(), z, 10, 0.1, 0.1, 0.1, 0);
-            }
-        }
+    if (attackCooldown <= 0 && this.target != null && activeGoal == null) {
+      val choice = random.nextInt(armstrongGoals.size)
+      val candidateGoal = armstrongGoals[choice]
+
+      if (candidateGoal.canUse()) {
+        activeGoal = candidateGoal
+        activeGoal!!.start()
+        attackCooldown = MAX_COOLDOWN // Reset cooldown
+        level().broadcastEntityEvent(this, 62.toByte())
+      }
     }
 
-    private void ensureGoalActive(GoalSelector selector, Goal goal, int priority) {
-        if (!isGoalActive(selector, goal)) {
-            selector.addGoal(priority, goal);
-        }
+    if (activeGoal != null) {
+      if (activeGoal!!.canContinueToUse()) {
+        activeGoal!!.tick()
+      } else {
+        activeGoal!!.stop()
+        activeGoal = null // Reset the active goal after stopping
+      }
     }
 
-    private void removeGoalIfActive(GoalSelector selector, Goal goal) {
-        if (isGoalActive(selector, goal)) {
-            selector.removeGoal(goal);
-        }
+    if (jumped && !onGround()) {
+      offGround = true
     }
 
-    private boolean isGoalActive(GoalSelector selector, Goal goal) {
-        return selector.getAvailableGoals().stream()
-                .anyMatch(wrappedGoal -> wrappedGoal.getGoal() == goal);
+    if (this.onGround() && offGround) {
+      jumped = false // Reset the jump flag
+      offGround = false
+      triggerGroundPound()
     }
+  }
 
-    private boolean shouldJumpToTarget(LivingEntity target) {
-        // Check if the target is within a straight line but on a different elevation
-        double dx = Math.abs(this.getX() - target.getX());
-        double dz = Math.abs(this.getZ() - target.getZ());
-        double dy = target.getY() - this.getY();
-        return dx <= 5 && dz <= 5 && dy > 1 && dy < 4;  // Example condition, adjust as needed
+  private fun triggerGroundPound() {
+    if (this.health <= this.maxHealth * 0.5) {
+      // Radius within which the effect is applied
+      val radius = 5.0
+      var nearbyEntities =
+          this.level().getEntitiesOfClass<LivingEntity>(
+              LivingEntity::class.java,
+              this.boundingBox.inflate(radius),
+          ) { e ->
+            e !== this && e.isAlive
+          }
+      val radiusSquared = radius * radius // Calculate square of radius to use in comparison
+
+      // Filter entities to include only those within the spherical distance
+      nearbyEntities =
+          nearbyEntities
+              .stream()
+              .filter { e ->
+                e.position().distanceToSqr(this.position()) <= radiusSquared &&
+                    EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(e)
+              }
+              .toList()
+
+      // Apply a knock-up effect and show particles
+      for (entity in nearbyEntities) {
+        val upForce = 1.5
+        entity.deltaMovement = entity.deltaMovement.add(0.0, upForce, 0.0)
+        entity.hurtMarked = true
+      }
+
+      // Display particles in a circle around the mob
+      displaySweepParticles()
     }
+  }
 
-    private void jumpTowardsTarget(LivingEntity target) {
-        if (this.isAlive()) {
-            Vec3 direction = new Vec3(target.getX() - this.getX(), 0, target.getZ() - this.getZ()).normalize();
-            double horizontalSpeedFactor = 0.8;
-            double verticalSpeedFactor = 0.9;
-            this.setDeltaMovement(direction.x * horizontalSpeedFactor, verticalSpeedFactor, direction.z * horizontalSpeedFactor);
-            this.hasImpulse = true;
-            jumped = true;
-        }
+  private fun displaySweepParticles() {
+    val radius = 5.0
+    val sl = level()
+    if (sl is ServerLevel) {
+      var i = 0
+      while (i < 360) {
+        val rad = Math.toRadians(i.toDouble())
+        val x = this.x + radius * cos(rad)
+        val z = this.z + radius * sin(rad)
+        sl.sendParticles(
+            ParticleTypes.SWEEP_ATTACK,
+            x,
+            this.y,
+            z,
+            10,
+            0.1,
+            0.1,
+            0.1,
+            0.0,
+        )
+        i += 10
+      }
     }
+  }
 
-    @Override
-    public void die(@NotNull DamageSource cause) {
-        super.die(cause);
-
-        boolean anyAlive = false;
-        if (!level().isClientSide) {  // Ensure this runs on the server side
-            // Check if there are any other entities of this type still alive
-            anyAlive = level().getEntitiesOfClass(StevenArmstrong.class, this.getBoundingBox().inflate(10000)).stream()
-                    .anyMatch(e -> e.isAlive() && e != this);
-        }
-        if (level().isClientSide() && !anyAlive) {
-            // Inform the client to stop the music, typically through a custom packet or event
-            PacketHandler.sendToServer(new SStopArmstrongMusicPacket());
-        }
+  private fun ensureGoalActive(selector: GoalSelector, goal: Goal, priority: Int) {
+    if (!isGoalActive(selector, goal)) {
+      selector.addGoal(priority, goal)
     }
+  }
 
-    @Override
-    protected void customServerAiStep() {
-        this.bossEvent.setProgress(this.getHealth() / this.getMaxHealth());
+  private fun removeGoalIfActive(selector: GoalSelector, goal: Goal) {
+    if (isGoalActive(selector, goal)) {
+      selector.removeGoal(goal)
     }
+  }
 
-    @Override
-    public void startSeenByPlayer(@NotNull ServerPlayer player) {
-        super.startSeenByPlayer(player);
-        this.bossEvent.addPlayer(player);
+  private fun isGoalActive(selector: GoalSelector, goal: Goal?): Boolean {
+    return selector.availableGoals.stream().anyMatch { wrappedGoal -> wrappedGoal.goal === goal }
+  }
+
+  private fun shouldJumpToTarget(target: LivingEntity): Boolean {
+    // Check if the target is within a straight line but on a different elevation
+    val dx = abs(this.x - target.x)
+    val dz = abs(this.z - target.z)
+    val dy = target.y - this.y
+    return dx <= 5 && dz <= 5 && dy > 1 && dy < 4 // Example condition, adjust as needed
+  }
+
+  private fun jumpTowardsTarget(target: LivingEntity) {
+    if (this.isAlive) {
+      val direction = Vec3(target.x - this.x, 0.0, target.z - this.z).normalize()
+      val horizontalSpeedFactor = 0.8
+      val verticalSpeedFactor = 0.9
+      this.setDeltaMovement(
+          direction.x * horizontalSpeedFactor,
+          verticalSpeedFactor,
+          direction.z * horizontalSpeedFactor,
+      )
+      this.hasImpulse = true
+      jumped = true
     }
+  }
 
-    @Override
-    public void stopSeenByPlayer(@NotNull ServerPlayer player) {
-        super.stopSeenByPlayer(player);
-        this.bossEvent.removePlayer(player);
+  override fun die(cause: DamageSource) {
+    super.die(cause)
+
+    var anyAlive = false
+    if (!level().isClientSide) { // Ensure this runs on the server side
+      // Check if there are any other entities of this type still alive
+      anyAlive =
+          level()
+              .getEntitiesOfClass<StevenArmstrong>(
+                  StevenArmstrong::class.java,
+                  this.boundingBox.inflate(10000.0),
+              )
+              .stream()
+              .anyMatch { e -> e.isAlive && e !== this }
     }
-
-    @Override
-    protected void populateDefaultEquipmentSlots(@NotNull RandomSource r, @NotNull DifficultyInstance d) {
-        // Create an ItemStack for leather boots
-        ItemStack boots = new ItemStack(Items.LEATHER_BOOTS);
-
-        // Apply the Depth Strider III enchantment to the boots
-        boots.enchant(Enchantments.DEPTH_STRIDER, 3);
-
-        // Set the enchanted boots to the mob's feet slot
-        setItemSlot(EquipmentSlot.FEET, boots);
+    if (level().isClientSide() && !anyAlive) {
+      // Inform the client to stop the music, typically through a custom packet or event
+      sendToServer(SStopArmstrongMusicPacket())
     }
+  }
 
-    @Nullable
-    @Override
-    protected SoundEvent getAmbientSound() {
-        return ModSounds.ARMSTRONG_ROAR.get();
-    }
+  override fun customServerAiStep() {
+    this.bossEvent.setProgress(this.health / this.maxHealth)
+  }
 
-    @Override
-    protected SoundEvent getHurtSound(@NotNull DamageSource d) {
-        return ModSounds.ARMSTRONG_HURT.get();
-    }
+  override fun startSeenByPlayer(player: ServerPlayer) {
+    super.startSeenByPlayer(player)
+    this.bossEvent.addPlayer(player)
+  }
 
-    @Override
-    protected SoundEvent getDeathSound() {
-        return ModSounds.ARMSTRONG_DEATH.get();
-    }
+  override fun stopSeenByPlayer(player: ServerPlayer) {
+    super.stopSeenByPlayer(player)
+    this.bossEvent.removePlayer(player)
+  }
 
-    @Override
-    protected void playStepSound(@NotNull BlockPos p, @NotNull BlockState s) {
-        this.playSound(ModSounds.ARMSTRONG_STEP.get(), 10.0F, 1.0F);
-    }
+  override fun populateDefaultEquipmentSlots(r: RandomSource, d: DifficultyInstance) {
+    // Create an ItemStack for leather boots
+    val boots = ItemStack(Items.LEATHER_BOOTS)
 
-    @Override
-    public boolean doHurtTarget(@NotNull Entity target) {
-        level().broadcastEntityEvent(this, (byte) 4);
-        playSound(ModSounds.ARMSTRONG_ATTACK_IMPACT.get(), 10.0F, getVoicePitch());
-        return super.doHurtTarget(target);
-    }
+    // Apply the Depth Strider III enchantment to the boots
+    boots.enchant(Enchantments.DEPTH_STRIDER, 3)
 
-    @Override
-    public boolean removeWhenFarAway(double d) {
-        return false;
-    }
+    // Set the enchanted boots to the mob's feet slot
+    setItemSlot(EquipmentSlot.FEET, boots)
+  }
 
-    @Override
-    public void checkDespawn() {
-        if (level().getDifficulty() == Difficulty.PEACEFUL && shouldDespawnInPeaceful()) {
-            discard(); // Despawn the entity if the difficulty is set to Peaceful.
-        }
-    }
+  override fun getAmbientSound(): SoundEvent {
+    return ModSounds.ARMSTRONG_ROAR.get()
+  }
 
-    @Override
-    public boolean isPushedByFluid(FluidType fluidType) {
-        return false;
+  override fun getHurtSound(d: DamageSource): SoundEvent {
+    return ModSounds.ARMSTRONG_HURT.get()
+  }
+
+  override fun getDeathSound(): SoundEvent {
+    return ModSounds.ARMSTRONG_DEATH.get()
+  }
+
+  override fun playStepSound(p: BlockPos, s: BlockState) {
+    this.playSound(ModSounds.ARMSTRONG_STEP.get(), 10.0f, 1.0f)
+  }
+
+  override fun doHurtTarget(target: Entity): Boolean {
+    level().broadcastEntityEvent(this, 4.toByte())
+    playSound(ModSounds.ARMSTRONG_ATTACK_IMPACT.get(), 10.0f, voicePitch)
+    return super.doHurtTarget(target)
+  }
+
+  override fun removeWhenFarAway(d: Double): Boolean {
+    return false
+  }
+
+  override fun checkDespawn() {
+    if (level().difficulty == Difficulty.PEACEFUL && shouldDespawnInPeaceful()) {
+      discard() // Despawn the entity if the difficulty is set to Peaceful.
     }
+  }
+
+  override fun isPushedByFluid(fluidType: FluidType?): Boolean {
+    return false
+  }
+
+  companion object {
+    private const val SIGHT_RANGE = 50.0f // Increased sight range
+    private const val BASE_SPEED = 0.5f
+    private const val MAX_HEALTH = 500f
+    const val ATTACK_DAMAGE: Float = 15.0f
+    private const val MAX_COOLDOWN = 200 // Cooldown time in ticks
+
+    val ARMSTRONG_MUSIC: Music =
+        Music(ModSounds.ARMSTRONG_MUSIC.getHolder().orElseThrow(), 100, 200, true)
+
+    fun createAttributes(): AttributeSupplier.Builder {
+      return createMobAttributes()
+          .add(Attributes.MAX_HEALTH, MAX_HEALTH.toDouble())
+          .add(Attributes.MOVEMENT_SPEED, BASE_SPEED.toDouble())
+          .add(Attributes.FOLLOW_RANGE, SIGHT_RANGE.toDouble())
+          .add(Attributes.KNOCKBACK_RESISTANCE, 1.0)
+          .add(Attributes.ATTACK_DAMAGE, ATTACK_DAMAGE.toDouble())
+    }
+  }
 }

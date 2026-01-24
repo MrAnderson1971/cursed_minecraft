@@ -1,94 +1,110 @@
-package com.thomas.shampoo.entity.ai;
+package com.thomas.shampoo.entity.ai
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
-import net.minecraft.world.entity.boss.wither.WitherBoss;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.core.BlockPos
+import net.minecraft.core.particles.ParticleTypes
+import net.minecraft.server.level.ServerLevel
+import net.minecraft.util.Mth
+import net.minecraft.world.entity.Mob
+import net.minecraft.world.entity.ai.navigation.GroundPathNavigation
+import net.minecraft.world.entity.boss.wither.WitherBoss
+import net.minecraft.world.level.Level
+import net.minecraft.world.level.pathfinder.BlockPathTypes
+import kotlin.math.min
 
-public class ArmstrongPathNavigation extends GroundPathNavigation {
-
-    public ArmstrongPathNavigation(Mob mob, Level level) {
-        super(mob, level);
+open class ArmstrongPathNavigation(mob: Mob, level: Level) : GroundPathNavigation(mob, level) {
+  override fun followThePath() {
+    if (this.path == null) {
+      return
     }
+    val pathIndex = this.path!!.nextNodeIndex
 
-    @Override
-    protected void followThePath() {
-        if (this.path == null) {
-            return;
-        }
-        int pathIndex = this.path.getNextNodeIndex();
+    // Check only the next segment of the path or a few blocks ahead rather than the entire path
+    // segment ahead.
+    val checkAheadRange =
+        min(
+            pathIndex + 3,
+            this.path!!.nodeCount,
+        ) // Check up to 3 nodes ahead for more focused block destruction
 
-        // Check only the next segment of the path or a few blocks ahead rather than the entire path segment ahead.
-        int checkAheadRange = Math.min(pathIndex + 3, this.path.getNodeCount());  // Check up to 3 nodes ahead for more focused block destruction
+    // debugWool();
+    this.checkAndDestroyBlocks(checkAheadRange)
 
-        //debugWool();
-        this.checkAndDestroyBlocks(checkAheadRange);
+    super.followThePath()
+  }
 
-        super.followThePath();
+  private fun debugWool() {
+    if (this.path == null) {
+      return
     }
+    for (i in path!!.nextNodeIndex..<path!!.nodeCount) {
+      val nextNodePos: BlockPos?
+      try {
+        nextNodePos = path!!.getNode(i).asBlockPos()
+      } catch (_: IndexOutOfBoundsException) {
+        return
+      }
+      if (level is ServerLevel) {
+        (level as ServerLevel).sendParticles(
+            ParticleTypes.FLAME,
+            nextNodePos.x.toDouble(),
+            nextNodePos.y.toDouble(),
+            nextNodePos.z.toDouble(),
+            1,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+        )
+      }
+    }
+  }
 
-    private void debugWool() {
-        if (this.path == null) {
-            return;
-        }
-        for (int i = path.getNextNodeIndex(); i < path.getNodeCount(); i++) {
-            BlockPos nextNodePos;
-            try {
-                nextNodePos = path.getNode(i).asBlockPos();
-            } catch (IndexOutOfBoundsException e) {
-                return;
+  private fun checkAndDestroyBlocks(checkAheadRange: Int) {
+    if (path == null) {
+      return
+    }
+    val width = Mth.ceil(this.mob.bbWidth)
+    val height = Mth.ceil(this.mob.bbHeight)
+
+    for (i in this.path!!.getNextNodeIndex()..<checkAheadRange) {
+      try {
+        val currentPos = this.path!!.getNode(i).asBlockPos()
+        val nextPos =
+            if (i + 1 < this.path!!.nodeCount) this.path!!.getNode(i + 1).asBlockPos()
+            else null
+
+        val isDiagonal =
+            nextPos != null &&
+                currentPos.x != nextPos.x &&
+                currentPos.z != nextPos.z
+        val range = if (isDiagonal) width else width / 2 // Increase range if moving diagonally
+
+        for (dx in -range..range) {
+          for (dz in -range..range) {
+            for (dy in 0..height) {
+              val blockToCheck = currentPos.offset(dx, dy, dz)
+              if (shouldDestroyBlock(blockToCheck)) {
+                this.level.destroyBlock(blockToCheck, true)
+              }
             }
-            if (level instanceof ServerLevel sl) {
-                sl.sendParticles(ParticleTypes.FLAME, nextNodePos.getX(), nextNodePos.getY(), nextNodePos.getZ(), 1, 0.0D, 0.0D, 0.0D, 0.0D);
-            }
+          }
         }
+      } catch (_: IndexOutOfBoundsException) {
+        return
+      }
     }
+  }
 
-    private void checkAndDestroyBlocks(int checkAheadRange) {
-        if (path == null) {
-            return;
-        }
-        int width = Mth.ceil(this.mob.getBbWidth());
-        int height = Mth.ceil(this.mob.getBbHeight());
+  private fun shouldDestroyBlock(pos: BlockPos): Boolean {
+    val state = this.level.getBlockState(pos)
+    return WitherBoss.canDestroy(state) ||
+        !state
+            .fluidState
+            .isEmpty // This method should return true for blocks that can be destroyed by the
+                       // entity.
+  }
 
-        for (int i = this.path.getNextNodeIndex(); i < checkAheadRange; ++i) {
-            try {
-                BlockPos currentPos = this.path.getNode(i).asBlockPos();
-                BlockPos nextPos = i + 1 < this.path.getNodeCount() ? this.path.getNode(i + 1).asBlockPos() : null;
-
-                boolean isDiagonal = nextPos != null && currentPos.getX() != nextPos.getX() && currentPos.getZ() != nextPos.getZ();
-                int range = isDiagonal ? width : width / 2; // Increase range if moving diagonally
-
-                for (int dx = -range; dx <= range; dx++) {
-                    for (int dz = -range; dz <= range; dz++) {
-                        for (int dy = 0; dy <= height; dy++) {
-                            BlockPos blockToCheck = currentPos.offset(dx, dy, dz);
-                            if (shouldDestroyBlock(blockToCheck)) {
-                                this.level.destroyBlock(blockToCheck, true);
-                            }
-                        }
-                    }
-                }
-            } catch (IndexOutOfBoundsException e) {
-                return;
-            }
-        }
-    }
-
-    private boolean shouldDestroyBlock(BlockPos pos) {
-        BlockState state = this.level.getBlockState(pos);
-        return WitherBoss.canDestroy(state) || !state.getFluidState().isEmpty(); // This method should return true for blocks that can be destroyed by the entity.
-    }
-
-    @Override
-    protected boolean hasValidPathType(@NotNull BlockPathTypes pathTypes) {
-        return pathTypes != BlockPathTypes.OPEN;
-    }
+  override fun hasValidPathType(pathTypes: BlockPathTypes): Boolean {
+    return pathTypes != BlockPathTypes.OPEN
+  }
 }

@@ -1,66 +1,102 @@
-package com.thomas.shampoo.entity;
+package com.thomas.shampoo.entity
 
-import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.AvoidEntityGoal;
-import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.RangedAttackGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
-import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
-import net.minecraft.world.entity.monster.Enemy;
-import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.world.entity.monster.RangedAttackMob;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
+import kotlin.math.sqrt
+import net.minecraft.world.entity.*
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier
+import net.minecraft.world.entity.ai.attributes.Attributes
+import net.minecraft.world.entity.ai.goal.AvoidEntityGoal
+import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal
+import net.minecraft.world.entity.ai.goal.RangedAttackGoal
+import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal
+import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal
+import net.minecraft.world.entity.monster.Enemy
+import net.minecraft.world.entity.monster.Monster
+import net.minecraft.world.entity.monster.RangedAttackMob
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.Level
 
-public class Obama extends Monster implements RangedAttackMob, Unfireballable {
-    private static final double BASE_SPEED = 0.6;
+class Obama(type: EntityType<out Monster>, worldIn: Level) :
+    Monster(type, worldIn), RangedAttackMob, Unfireballable {
+  init {
+    this.goalSelector.addGoal(2, RangedAttackGoal(this, BASE_SPEED, 1, 20, 16f))
+    this.targetSelector.addGoal(
+        2,
+        NearestAttackableTargetGoal<Mob>(
+            this,
+            Mob::class.java,
+            10,
+            true,
+            false,
+        ) { e ->
+          e !is Obama && e is Enemy
+        },
+    )
+    this.targetSelector.addGoal(
+        3,
+        NearestAttackableTargetGoal<Player>(
+            this,
+            Player::class.java,
+            10,
+            true,
+            false,
+        ) { _ ->
+          true
+        },
+    )
+    this.goalSelector.addGoal(
+        1,
+        AvoidEntityGoal<Mob>(
+            this,
+            Mob::class.java,
+            10.0f,
+            BASE_SPEED,
+            2 * BASE_SPEED,
+        ) { e ->
+          selection(e) && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(e)
+        },
+    )
+    this.goalSelector.addGoal(7, WaterAvoidingRandomStrollGoal(this, 1.0))
+    this.goalSelector.addGoal(8, RandomLookAroundGoal(this))
+  }
 
-    public Obama(EntityType<? extends Monster> type, Level worldIn) {
-        super(type, worldIn);
-        this.goalSelector.addGoal(2, new RangedAttackGoal(this, BASE_SPEED, 1, 20, 16));
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Mob.class, 10,
-                true, false, e -> !(e instanceof Obama) && e instanceof Enemy));
-        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Player.class, 10, true, false, e -> true));
-        this.goalSelector.addGoal(1, new AvoidEntityGoal<>(this, Mob.class, 10.0F, BASE_SPEED,
-                2 * BASE_SPEED, (e) -> Obama.selection(e) && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(e)));
-        this.goalSelector.addGoal(7, new WaterAvoidingRandomStrollGoal(this, 1.0D));
-        this.goalSelector.addGoal(8, new RandomLookAroundGoal(this));
+  override fun performRangedAttack(target: LivingEntity, distanceFactor: Float) {
+    val level = level()
+
+    // Calculate direction towards target
+    val d0 = target.x - x
+    val d1 = target.getY(0.5) - eyeY // Aim directly at the target's eyes for better accuracy
+    val d2 = target.z - z
+    val dist = sqrt(d0 * d0 + d2 * d2)
+
+    // Calculate how hard the fireball should be thrown
+    val accelX = d0 / dist * 0.3 // You may want to adjust the multiplier based on desired speed
+    val accelY = d1 / dist * 0.3 // Direct line aim since fireballs are not affected by gravity
+    val accelZ = d2 / dist * 0.3
+
+    // Create the CustomFireball entity
+    val fireball = CustomFireball(level, this, accelX, accelY, accelZ)
+
+    // Set the fireball's position slightly above and in front of the owner to prevent collision
+    // with the owner
+    fireball.setPos(x + d0 / dist * 0.5, eyeY, z + d2 / dist * 0.5)
+
+    // Add the fireball to the world
+    level.addFreshEntity(fireball)
+  }
+
+  companion object {
+    private const val BASE_SPEED = 0.6
+
+    private fun selection(e: Entity?): Boolean {
+      return e !is Obama && (e is Enemy || e is Player)
     }
 
-    private static boolean selection(Entity e) {
-        return !(e instanceof Obama) && (e instanceof Enemy || e instanceof Player);
+    @JvmStatic
+    fun createAttributes(): AttributeSupplier.Builder {
+      return createMobAttributes()
+          .add(Attributes.MAX_HEALTH, 20.0)
+          .add(Attributes.MOVEMENT_SPEED, BASE_SPEED)
+          .add(Attributes.FOLLOW_RANGE, 30.0)
     }
-
-    public static AttributeSupplier.Builder createAttributes() {
-        return Mob.createMobAttributes().add(Attributes.MAX_HEALTH, 20)
-                .add(Attributes.MOVEMENT_SPEED, BASE_SPEED)
-                .add(Attributes.FOLLOW_RANGE, 30.0D);
-    }
-
-    @Override
-    public void performRangedAttack(LivingEntity target, float distanceFactor) {
-        Level level = level();
-
-        // Calculate direction towards target
-        double d0 = target.getX() - getX();
-        double d1 = target.getY(0.5) - getEyeY(); // Aim directly at the target's eyes for better accuracy
-        double d2 = target.getZ() - getZ();
-        double dist = Math.sqrt(d0 * d0 + d2 * d2);
-
-        // Calculate how hard the fireball should be thrown
-        double accelX = d0 / dist * 0.3; // You may want to adjust the multiplier based on desired speed
-        double accelY = d1 / dist * 0.3; // Direct line aim since fireballs are not affected by gravity
-        double accelZ = d2 / dist * 0.3;
-
-        // Create the CustomFireball entity
-        CustomFireball fireball = new CustomFireball(level, this, accelX, accelY, accelZ);
-
-        // Set the fireball's position slightly above and in front of the owner to prevent collision with the owner
-        fireball.setPos(getX() + d0 / dist * 0.5, getEyeY(), getZ() + d2 / dist * 0.5);
-
-        // Add the fireball to the world
-        level.addFreshEntity(fireball);
-    }
+  }
 }

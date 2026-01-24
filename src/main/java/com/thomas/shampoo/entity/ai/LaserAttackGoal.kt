@@ -1,55 +1,58 @@
-package com.thomas.shampoo.entity.ai;
+package com.thomas.shampoo.entity.ai
 
-import com.thomas.shampoo.entity.Unlaserable;
-import net.minecraft.world.entity.EntitySelector;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.LivingEntity;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.function.Predicate;
+import com.thomas.shampoo.effect.Unlaserable
+import java.util.*
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.EntitySelector
+import net.minecraft.world.entity.LivingEntity
+import net.minecraft.world.entity.Mob
+import net.minecraft.world.entity.ai.goal.Goal
 
-public class LaserAttackGoal extends Goal {
-    private final Mob mob;
-    private final Class<? extends LivingEntity> targetClass; // Single class
-    private final Predicate<LivingEntity> additionalCriteria;
-    private LivingEntity target;
+class LaserAttackGoal(
+    private val mob: Mob, // Single class
+    private val targetClass: Class<out LivingEntity?>,
+    customCriteria: (LivingEntity) -> Boolean,
+) : Goal() {
+  private val additionalCriteria: (LivingEntity) -> Boolean
+  private var target: LivingEntity? = null
 
-    public LaserAttackGoal(Mob mob, Class<? extends LivingEntity> targetClass, Predicate<LivingEntity> customCriteria) {
-        this.mob = mob;
-        this.targetClass = targetClass;
-        // New custom criteria
-        this.setFlags(EnumSet.of(Flag.LOOK));
-        // General criteria including not attacking creative or spectator mode players and custom criteria
-        this.additionalCriteria = entity -> EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(entity) &&
-                customCriteria.test(entity) && !(entity instanceof Unlaserable);
+  init {
+    // New custom criteria
+    this.setFlags(EnumSet.of<Flag?>(Flag.LOOK))
+    // General criteria including not attacking creative or spectator mode players and custom
+    // criteria
+    this.additionalCriteria = { entity ->
+      EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(entity) &&
+          customCriteria(entity) &&
+          (entity !is Unlaserable)
     }
+  }
 
-    @Override
-    public boolean canUse() {
-        this.target = findNearestTarget();
-        return this.target != null;
-    }
+  override fun canUse(): Boolean {
+    this.target = findNearestTarget()
+    return this.target != null
+  }
 
-    private LivingEntity findNearestTarget() {
-        // Adjusted to check for the specific class and additional criteria
-        List<? extends LivingEntity> potentialTargets = mob.getCommandSenderWorld().getEntitiesOfClass(targetClass,
-                this.mob.getBoundingBox().inflate(10), additionalCriteria);
-        return potentialTargets.isEmpty() ? null : potentialTargets.get(0);
-    }
+  private fun findNearestTarget(): LivingEntity? {
+    // Adjusted to check for the specific class and additional criteria
+    val potentialTargets =
+        mob.commandSenderWorld.getEntitiesOfClass(
+            targetClass,
+            this.mob.boundingBox.inflate(10.0),
+            additionalCriteria,
+        )
+    return if (potentialTargets.isEmpty()) null else potentialTargets[0]
+  }
 
-    @Override
-    public void start() {
-        // Called once when the goal is initialized
-        this.mob.getLookControl().setLookAt(this.target, 30.0F, 30.0F);
-    }
+  override fun start() {
+    // Called once when the goal is initialized
+    this.mob.getLookControl().setLookAt(this.target!! as Entity, 30.0f, 30.0f)
+  }
 
-    @Override
-    public void tick() {
-        // Called every tick while the goal is active
-        if (this.target != null) {
-            this.mob.getLookControl().setLookAt(this.target, 30.0F, 30.0F);
-            // Optionally trigger laser attack here if applicable
-        }
+  override fun tick() {
+    // Called every tick while the goal is active
+    if (this.target != null) {
+      this.mob.getLookControl().setLookAt(this.target as Entity, 30.0f, 30.0f)
     }
+  }
 }

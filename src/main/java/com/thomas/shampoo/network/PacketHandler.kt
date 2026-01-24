@@ -1,39 +1,46 @@
-package com.thomas.shampoo.network;
+package com.thomas.shampoo.network
 
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.network.ChannelBuilder;
-import net.minecraftforge.network.NetworkDirection;
-import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.network.SimpleChannel;
+import com.thomas.shampoo.ShampooMod
+import java.util.function.BiConsumer
+import net.minecraft.resources.ResourceLocation
+import net.minecraftforge.network.ChannelBuilder
+import net.minecraftforge.network.NetworkDirection
+import net.minecraftforge.network.PacketDistributor
+import net.minecraftforge.network.SimpleChannel
 
-import static com.thomas.shampoo.ShampooMod.MODID;
+object PacketHandler {
+  private val INSTANCE: SimpleChannel =
+      ChannelBuilder.named(ResourceLocation(ShampooMod.MODID, "main"))
+          .serverAcceptedVersions { _, _ -> true }
+          .clientAcceptedVersions { _, _ -> true }
+          .networkProtocolVersion(1)
+          .simpleChannel()
 
-public class PacketHandler {
-    private static final SimpleChannel INSTANCE = ChannelBuilder.named(
-            new ResourceLocation(MODID, "main"))
-            .serverAcceptedVersions((status, version) -> true)
-            .clientAcceptedVersions((status, version) -> true)
-            .networkProtocolVersion(1)
-            .simpleChannel();
+  fun register() {
+    INSTANCE.messageBuilder(
+            SStopArmstrongMusicPacket::class.java,
+            NetworkDirection.PLAY_TO_SERVER,
+        )
+        .encoder { obj, buf -> obj.encode(buf) }
+        .decoder { buf -> SStopArmstrongMusicPacket(buf) }
+        .consumerNetworkThread(BiConsumer { obj, context -> obj.handle(context) })
+        .add()
+    INSTANCE.messageBuilder(
+            SStartPlayingArmstrongMusicPacket::class.java,
+            NetworkDirection.PLAY_TO_SERVER,
+        )
+        .encoder { obj, buf -> obj.encode(buf) }
+        .decoder { buf -> SStartPlayingArmstrongMusicPacket(buf) }
+        .consumerNetworkThread(BiConsumer { obj, context -> obj.handle(context) })
+        .add()
+  }
 
-    public static void register() {
-        INSTANCE.messageBuilder(SStopArmstrongMusicPacket.class, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(SStopArmstrongMusicPacket::encode)
-                .decoder(SStopArmstrongMusicPacket::new)
-                .consumerNetworkThread(SStopArmstrongMusicPacket::handle)
-                .add();
-        INSTANCE.messageBuilder(SStartPlayingArmstrongMusicPacket.class, NetworkDirection.PLAY_TO_SERVER)
-                .encoder(SStartPlayingArmstrongMusicPacket::encode)
-                .decoder(SStartPlayingArmstrongMusicPacket::new)
-                .consumerNetworkThread(SStartPlayingArmstrongMusicPacket::handle)
-                .add();
-    }
+  @JvmStatic
+  fun sendToServer(msg: Any?) {
+    INSTANCE.send(msg, PacketDistributor.SERVER.noArg())
+  }
 
-    public static void sendToServer(Object msg) {
-        INSTANCE.send(msg, PacketDistributor.SERVER.noArg());
-    }
-
-    public static void sendToAllClients(Object msg) {
-        INSTANCE.send(msg, PacketDistributor.ALL.noArg());
-    }
+  fun sendToAllClients(msg: Any?) {
+    INSTANCE.send(msg, PacketDistributor.ALL.noArg())
+  }
 }

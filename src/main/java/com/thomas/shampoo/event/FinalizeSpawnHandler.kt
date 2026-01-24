@@ -1,21 +1,19 @@
-package com.thomas.shampoo.event;
+package com.thomas.shampoo.event
 
-import com.thomas.shampoo.ShampooMod;
-import com.thomas.shampoo.entity.StevenArmstrong;
-import net.minecraft.world.entity.Mob;
-import net.minecraftforge.event.entity.living.MobSpawnEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import com.thomas.shampoo.ShampooMod
+import com.thomas.shampoo.entity.StevenArmstrong
+import net.minecraftforge.event.entity.living.MobSpawnEvent.FinalizeSpawn
+import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber
 
-@Mod.EventBusSubscriber(modid = ShampooMod.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
-public class FinalizeSpawnHandler {
-
-    @SubscribeEvent
-    public void onMobSpawnFinalize(MobSpawnEvent.FinalizeSpawn event) {
-        Mob mob = event.getEntity();
-        if (mob instanceof StevenArmstrong stevenArmstrong) {
-            stevenArmstrong.hasTriggeredLowHealthState = false;
-            stevenArmstrong.hasTriggeredStartState = false;
-        }
+@EventBusSubscriber(modid = ShampooMod.MODID, bus = EventBusSubscriber.Bus.FORGE)
+class FinalizeSpawnHandler {
+  @SubscribeEvent
+  fun onMobSpawnFinalize(event: FinalizeSpawn) {
+    val mob = event.entity
+    if (mob is StevenArmstrong) {
+      mob.hasTriggeredLowHealthState = false
+      mob.hasTriggeredStartState = false
     }
+  }
 }

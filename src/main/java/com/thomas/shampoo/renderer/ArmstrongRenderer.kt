@@ -1,24 +1,25 @@
-package com.thomas.shampoo.renderer;
+package com.thomas.shampoo.renderer
 
-import com.thomas.shampoo.entity.StevenArmstrong;
-import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import org.jetbrains.annotations.NotNull;
-
-import static com.thomas.shampoo.ShampooMod.MODID;
+import com.thomas.shampoo.ShampooMod
+import com.thomas.shampoo.entity.StevenArmstrong
+import net.minecraft.client.renderer.entity.EntityRendererProvider
+import net.minecraft.client.renderer.entity.MobRenderer
+import net.minecraft.resources.ResourceLocation
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.api.distmarker.OnlyIn
 
 @OnlyIn(Dist.CLIENT)
-public class ArmstrongRenderer extends MobRenderer<StevenArmstrong, ArmstrongModel<StevenArmstrong>> {
-    private static final ResourceLocation TEXTURE = new ResourceLocation(MODID,"textures/entity/steven_armstrong.png");
+class ArmstrongRenderer(context: EntityRendererProvider.Context) :
+    MobRenderer<StevenArmstrong, ArmstrongModel<StevenArmstrong>>(
+        context,
+        ArmstrongModel<StevenArmstrong>(context.bakeLayer(ModModelLayers.ARMSTRONG_LAYER)),
+        0.9f,
+    ) {
+  override fun getTextureLocation(entity: StevenArmstrong): ResourceLocation {
+    return TEXTURE
+  }
 
-    public ArmstrongRenderer(EntityRendererProvider.Context context) {
-        super(context, new ArmstrongModel<>(context.bakeLayer(ModModelLayers.ARMSTRONG_LAYER)), 0.9F);
-    }
-
-    public @NotNull ResourceLocation getTextureLocation(@NotNull StevenArmstrong entity) {
-        return TEXTURE;
-    }
+  companion object {
+    private val TEXTURE = ResourceLocation(ShampooMod.MODID, "textures/entity/steven_armstrong.png")
+  }
 }

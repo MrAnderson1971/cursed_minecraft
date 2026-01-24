@@ -1,29 +1,26 @@
-package com.thomas.shampoo.network;
+package com.thomas.shampoo.network
 
-import com.thomas.shampoo.entity.StevenArmstrong;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraftforge.event.network.CustomPayloadEvent;
+import com.thomas.shampoo.entity.StevenArmstrong
+import net.minecraft.client.Minecraft
+import net.minecraft.network.FriendlyByteBuf
+import net.minecraftforge.event.network.CustomPayloadEvent
 
-public class SStartPlayingArmstrongMusicPacket {
-    public SStartPlayingArmstrongMusicPacket() {}
+class SStartPlayingArmstrongMusicPacket {
+  constructor()
 
-    public SStartPlayingArmstrongMusicPacket(FriendlyByteBuf buf) {
+  constructor(buf: FriendlyByteBuf?)
+
+  fun encode(buf: FriendlyByteBuf?) {}
+
+  fun handle(context: CustomPayloadEvent.Context) {
+    context.enqueueWork {
+      val player = context.getSender()
+      if (player != null) {
+        if (!Minecraft.getInstance().musicManager.isPlayingMusic(StevenArmstrong.ARMSTRONG_MUSIC)) {
+          Minecraft.getInstance().musicManager.startPlaying(StevenArmstrong.ARMSTRONG_MUSIC)
+        }
+      }
     }
-
-    public void encode(FriendlyByteBuf buf) {
-    }
-
-    public void handle(CustomPayloadEvent.Context context) {
-        context.enqueueWork(() -> {
-            ServerPlayer player = context.getSender();
-            if (player != null) {
-                if (!Minecraft.getInstance().getMusicManager().isPlayingMusic(StevenArmstrong.ARMSTRONG_MUSIC)) {
-                    Minecraft.getInstance().getMusicManager().startPlaying(StevenArmstrong.ARMSTRONG_MUSIC);
-                }
-            }
-        });
-        context.setPacketHandled(true);
-    }
+    context.packetHandled = true
+  }
 }

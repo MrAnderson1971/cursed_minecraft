@@ -1,75 +1,99 @@
-package com.thomas.shampoo.event;
+package com.thomas.shampoo.event
 
-import com.thomas.shampoo.entity.EntityInit;
-import com.thomas.shampoo.entity.StevenArmstrong;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.pattern.BlockInWorld;
-import net.minecraft.world.level.block.state.pattern.BlockPattern;
-import net.minecraft.world.level.block.state.pattern.BlockPatternBuilder;
-import net.minecraft.world.level.block.state.predicate.BlockStatePredicate;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.event.level.BlockEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import com.thomas.shampoo.ShampooMod
+import com.thomas.shampoo.entity.EntityInit
+import com.thomas.shampoo.entity.StevenArmstrong
+import net.minecraft.core.BlockPos
+import net.minecraft.world.entity.Entity
+import net.minecraft.world.entity.player.Player
+import net.minecraft.world.level.Level
+import net.minecraft.world.level.block.Blocks
+import net.minecraft.world.level.block.CarvedPumpkinBlock
+import net.minecraft.world.level.block.state.BlockState
+import net.minecraft.world.level.block.state.pattern.BlockInWorld
+import net.minecraft.world.level.block.state.pattern.BlockPattern
+import net.minecraft.world.level.block.state.pattern.BlockPattern.BlockPatternMatch
+import net.minecraft.world.level.block.state.pattern.BlockPatternBuilder
+import net.minecraft.world.level.block.state.predicate.BlockStatePredicate
+import net.minecraftforge.api.distmarker.Dist
+import net.minecraftforge.event.level.BlockEvent.EntityPlaceEvent
+import net.minecraftforge.eventbus.api.SubscribeEvent
+import net.minecraftforge.fml.common.Mod.EventBusSubscriber
 
-import javax.annotation.Nullable;
-import java.util.function.Predicate;
+@EventBusSubscriber(
+    modid = ShampooMod.MODID,
+    bus = EventBusSubscriber.Bus.FORGE,
+    value = [Dist.CLIENT],
+)
+object BlockPlaceHandler {
+  private var stevenArmstrongFull: BlockPattern? = null
 
-import static com.thomas.shampoo.ShampooMod.MODID;
-import static net.minecraft.world.level.block.CarvedPumpkinBlock.clearPatternBlocks;
-import static net.minecraft.world.level.block.CarvedPumpkinBlock.updatePatternBlocks;
+  private val PUMPKINS_PREDICATE: (BlockState?) -> Boolean = { b ->
+    b != null && (b.`is`(Blocks.CARVED_PUMPKIN) || b.`is`(Blocks.JACK_O_LANTERN))
+  }
 
-@Mod.EventBusSubscriber(modid = MODID, bus = Mod.EventBusSubscriber.Bus.FORGE, value = Dist.CLIENT)
-public class BlockPlaceHandler {
-    @Nullable
-    private static BlockPattern stevenArmstrongFull;
-
-    private static final Predicate<BlockState> PUMPKINS_PREDICATE = (b) ->
-         b != null && (b.is(Blocks.CARVED_PUMPKIN) || b.is(Blocks.JACK_O_LANTERN));
-
-    @SubscribeEvent
-    public static void onBlockPlace(BlockEvent.EntityPlaceEvent event) {
-        if (!(event.getEntity() instanceof Player)) {
-            return;
-        }
-
-        Level world = (Level) event.getLevel();
-        BlockPos pos = event.getPos();
-        BlockState placedBlockState = world.getBlockState(pos);
-
-        // Check if a Pumpkin or Jack o'Lantern is placed
-        if (placedBlockState.getBlock() == Blocks.CARVED_PUMPKIN || placedBlockState.getBlock() == Blocks.JACK_O_LANTERN) {
-            BlockPattern.BlockPatternMatch blockpattern$blockpatternmatch1 = getOrCreateStevenArmstrongFull().find(world, pos);
-            if (blockpattern$blockpatternmatch1 != null) {
-                StevenArmstrong armstrong = new StevenArmstrong(EntityInit.STEVEN_ARMSTRONG.get(), world);
-                spawnArmstrongInWorld(world, blockpattern$blockpatternmatch1, armstrong,
-                        blockpattern$blockpatternmatch1.getBlock(1, 2, 0).getPos());
-            }
-        }
+  @SubscribeEvent
+  fun onBlockPlace(event: EntityPlaceEvent) {
+    if (event.entity !is Player) {
+      return
     }
 
-    private static void spawnArmstrongInWorld(Level level, BlockPattern.BlockPatternMatch blockPatternMatch, Entity entity, BlockPos pos) {
-        clearPatternBlocks(level, blockPatternMatch);
-        entity.moveTo((double)pos.getX() + 0.5D, (double)pos.getY() + 0.05D, (double)pos.getZ() + 0.5D, 0.0F, 0.0F);
-        level.addFreshEntity(entity);
+    val world = event.level as Level
+    val pos = event.pos
+    val placedBlockState = world.getBlockState(pos)
 
-        updatePatternBlocks(level, blockPatternMatch);
+    // Check if a Pumpkin or Jack o'Lantern is placed
+    if (
+        placedBlockState.block === Blocks.CARVED_PUMPKIN ||
+            placedBlockState.block === Blocks.JACK_O_LANTERN
+    ) {
+      val blockPatternMatch = orCreateStevenArmstrongFull.find(world, pos)
+      if (blockPatternMatch != null) {
+        val armstrong = StevenArmstrong(EntityInit.STEVEN_ARMSTRONG.get(), world)
+        spawnArmstrongInWorld(
+            world,
+            blockPatternMatch,
+            armstrong,
+            blockPatternMatch.getBlock(1, 2, 0).pos,
+        )
+      }
     }
+  }
 
-    private static BlockPattern getOrCreateStevenArmstrongFull() {
-        if (stevenArmstrongFull == null) {
-            stevenArmstrongFull = BlockPatternBuilder.start().aisle("~^~", "###", "~#~")
-                    .where('^', BlockInWorld.hasState(PUMPKINS_PREDICATE))
-                    .where('#', BlockInWorld.hasState(BlockStatePredicate.forBlock(Blocks.DIAMOND_BLOCK)))
-                    .where('~', (b) -> b.getState().isAir()
-            ).build();
-        }
+  private fun spawnArmstrongInWorld(
+      level: Level,
+      blockPatternMatch: BlockPatternMatch,
+      entity: Entity,
+      pos: BlockPos,
+  ) {
+    CarvedPumpkinBlock.clearPatternBlocks(level, blockPatternMatch)
+    entity.moveTo(
+        pos.x.toDouble() + 0.5,
+        pos.y.toDouble() + 0.05,
+        pos.z.toDouble() + 0.5,
+        0.0f,
+        0.0f,
+    )
+    level.addFreshEntity(entity)
 
-        return stevenArmstrongFull;
+    CarvedPumpkinBlock.updatePatternBlocks(level, blockPatternMatch)
+  }
+
+  private val orCreateStevenArmstrongFull: BlockPattern
+    get() {
+      if (stevenArmstrongFull == null) {
+        stevenArmstrongFull =
+            BlockPatternBuilder.start()
+                .aisle("~^~", "###", "~#~")
+                .where('^', BlockInWorld.hasState(PUMPKINS_PREDICATE))
+                .where(
+                    '#',
+                    BlockInWorld.hasState(BlockStatePredicate.forBlock(Blocks.DIAMOND_BLOCK)),
+                )
+                .where('~') { b: BlockInWorld? -> b!!.getState().isAir }
+                .build()
+      }
+
+      return stevenArmstrongFull!!
     }
 }
